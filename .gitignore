@@ -1,0 +1,16 @@
+# Visual Studio
+.vs/
+bin/
+obj/
+*.user
+*.suo
+
+# NuGet
+packages/
+
+# SQL Server
+*.mdf
+*.ldf
+
+# Sistema
+Thumbs.db
