@@ -1,4 +1,9 @@
+using AsistenciaQR.Repositorios;
+using AsistenciaQR.Servicios;
 using Microsoft.Data.SqlClient;
+using AsistenciaQR.Modelos;
+using AsistenciaQR.Repositorios;
+using AsistenciaQR.Servicios;
 
 namespace AsistenciaQR
 {
@@ -31,6 +36,56 @@ namespace AsistenciaQR
                     MessageBox.Show("Error de conexión: " + ex.Message);
                 }
             }
+        }
+
+        private void btnGenerarQR_Click_Click(object sender, EventArgs e)
+        {
+            var estudianteRepo = new EstudianteRepository();
+            var estudiante = estudianteRepo.ObtenerPorNIE("99999999");
+
+            if (estudiante is null)
+            {
+                MessageBox.Show("No se encontró el estudiante de prueba.");
+                return;
+            }
+
+            var qrService = new QRService();
+            var qrGenerado = qrService.GenerarQrParaEstudiante(estudiante);
+
+            MessageBox.Show($"QR generado correctamente.\nGuardado en: {qrGenerado.RutaImagen}");
+        }
+
+        private void btnGenerarCarnet_Click_Click(object sender, EventArgs e)
+        {
+            var estudianteRepo = new EstudianteRepository();
+            var estudiante = estudianteRepo.ObtenerPorNIE("99999999");
+
+            if (estudiante is null)
+            {
+                MessageBox.Show("No se encontro el estudiante de prueba.");
+                return;
+            }
+
+            var qrRepository = new QRRepository();
+            var qrActivo = qrRepository.ObtenerQrActivo(estudiante.EstudianteId);
+
+            if (qrActivo is null)
+            {
+                MessageBox.Show("Este estudiante todavia no tiene QR. Genera uno primero con el otro boton.");
+                return;
+            }
+
+            var carnetService = new CarnetService();
+            string rutaImagen = carnetService.GenerarImagenCarnet(estudiante, qrActivo);
+            string rutaPdf = carnetService.ExportarCarnetComoPdf(rutaImagen);
+
+            MessageBox.Show($"Carnet generado.\n\nImagen: {rutaImagen}\nPDF: {rutaPdf}");
+        }
+
+        private void btnAbrirKiosco_Click_Click(object sender, EventArgs e)
+        {
+            var kiosco = new FrmKioscoEscaneo();
+            kiosco.Show();
         }
     }
 
