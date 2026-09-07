@@ -1,13 +1,19 @@
 using System.Drawing;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
+using ZXing;
+using ZXing.Windows.Compatibility;
 
 namespace AsistenciaQR.Servicios
 {
     /// <summary>
     /// Maneja la captura de video de la webcam y la deteccion de
-    /// codigos QR en tiempo real usando OpenCvSharp4. Corre en un
-    /// hilo separado para no congelar la interfaz mientras lee la camara.
+    /// codigos QR en tiempo real. OpenCvSharp4 se encarga de abrir
+    /// la camara y capturar los frames; ZXing.Net se encarga de
+    /// detectar el QR dentro de cada frame (mas tolerante a
+    /// desenfoque, angulos y mala iluminacion que el detector nativo
+    /// de OpenCV). Corre en un hilo separado para no congelar la
+    /// interfaz.
     /// </summary>
     public class CamaraQRService : IDisposable
     {
@@ -16,7 +22,17 @@ namespace AsistenciaQR.Servicios
         // estudiante todavia tiene el carnet frente a la camara.
         private const int SegundosCooldown = 4;
 
-        private readonly QRCodeDetector _detector = new();
+        // Lector ZXing configurado para QR solamente.
+        private readonly BarcodeReader _lector = new()
+        {
+            AutoRotate = true,
+            Options = new ZXing.Common.DecodingOptions
+            {
+                PossibleFormats = new List<BarcodeFormat> { BarcodeFormat.QR_CODE },
+                TryHarder = true
+            }
+        };
+
         private VideoCapture? _captura;
         private CancellationTokenSource? _tokenCancelacion;
 
@@ -53,33 +69,53 @@ namespace AsistenciaQR.Servicios
         {
             using var frame = new Mat();
 
-            while (!token.IsCancellationRequested && _captura is not null)
+            while (!token.IsCancellationRequested)
             {
-                _captura.Read(frame);
-                if (frame.Empty()) continue;
-
-                // Muestra el frame en pantalla, tenga QR o no.
-                // OJO: se clona el bitmap porque el original se libera
-                // apenas termina este bloque "using" - sin el clon,
-                // la imagen llegaria danada o vacia a la pantalla.
-                using (var bitmap = BitmapConverter.ToBitmap(frame))
+                try
                 {
+                    // Se toma una copia local de la referencia: si
+                    // Detener() cambia _captura a null justo en este
+                    // instante desde otro hilo, este ciclo sigue
+                    // trabajando con la copia local sin explotar.
+                    var captura = _captura;
+                    if (captura is null) break;
+
+                    captura.Read(frame);
+                    if (frame.Empty()) continue;
+
+                    // Convertir el frame de OpenCV a Bitmap para
+                    // enviarlo a la pantalla Y para que ZXing lo analice.
+                    using var bitmap = BitmapConverter.ToBitmap(frame);
+
+                    // Clonar para el hilo de la UI (se muestra en pantalla).
                     FrameCapturado?.Invoke((Bitmap)bitmap.Clone());
+
+                    // ZXing analiza el Bitmap original buscando un QR.
+                    var resultadoQr = _lector.Decode(bitmap);
+                    if (resultadoQr is null) continue;
+
+                    string textoDetectado = resultadoQr.Text;
+                    if (string.IsNullOrEmpty(textoDetectado)) continue;
+
+                    bool esElMismoCodigoReciente =
+                        textoDetectado == _ultimoCodigoDetectado &&
+                        (DateTime.Now - _ultimaDeteccion).TotalSeconds < SegundosCooldown;
+
+                    if (esElMismoCodigoReciente) continue;
+
+                    _ultimoCodigoDetectado = textoDetectado;
+                    _ultimaDeteccion = DateTime.Now;
+
+                    CodigoDetectado?.Invoke(textoDetectado);
                 }
-
-                string textoDetectado = _detector.DetectAndDecode(frame, out _);
-                if (string.IsNullOrEmpty(textoDetectado)) continue;
-
-                bool esElMismoCodigoReciente =
-                    textoDetectado == _ultimoCodigoDetectado &&
-                    (DateTime.Now - _ultimaDeteccion).TotalSeconds < SegundosCooldown;
-
-                if (esElMismoCodigoReciente) continue;
-
-                _ultimoCodigoDetectado = textoDetectado;
-                _ultimaDeteccion = DateTime.Now;
-
-                CodigoDetectado?.Invoke(textoDetectado);
+                catch (Exception)
+                {
+                    // Si la camara se libero justo en este instante
+                    // (ej. se cerro la ventana del Kiosco a mitad de
+                    // una lectura), se detiene el hilo en silencio en
+                    // vez de tumbar toda la aplicacion.
+                    break;
+                }
             }
         }
 

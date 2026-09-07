@@ -38,7 +38,7 @@ namespace AsistenciaQR.Servicios
             var estudiante = _estudianteRepository.ObtenerPorNIE(nie);
             if (estudiante is null || !estudiante.Activo)
             {
-                return new ResultadoAsistencia { Estado = ResultadoEscaneo.CodigoNoValido };
+                return new ResultadoAsistencia { Estado = ResultadoEscaneo.EstudianteNoEncontrado };
             }
 
             return RegistrarAsistenciaEstudiante(estudiante);
@@ -61,10 +61,6 @@ namespace AsistenciaQR.Servicios
             }
             catch (SqlException)
             {
-                // Red de seguridad: si por una carrera de tiempos ya se
-                // habia registrado la asistencia justo antes de este insert,
-                // la restriccion UNIQUE que definimos en la Fase 1 lo
-                // rechaza aqui en vez de tumbar la aplicacion.
                 return new ResultadoAsistencia
                 {
                     Estado = ResultadoEscaneo.YaRegistradoHoy,

@@ -10,10 +10,6 @@ namespace AsistenciaQR
     /// Pantalla principal del kiosco: muestra la camara en vivo,
     /// procesa los codigos QR detectados, y ofrece un respaldo
     /// manual (escribir el NIE) por si la camara falla.
-    /// NOTA: este es el diseno funcional de prueba (Fase 2). El
-    /// diseno visual final (menu lateral, graficos, estilo del
-    /// boceto de referencia) se construye en la Fase 4, cuando ya
-    /// existan el Dashboard, CRUD y Reportes para integrar todo junto.
     /// </summary>
     public class FrmKioscoEscaneo : Form
     {
@@ -38,14 +34,18 @@ namespace AsistenciaQR
             _camaraService.CodigoDetectado += ProcesarCodigoDetectado;
 
             Load += (_, _) => IniciarCamara();
-            FormClosing += (_, _) => _camaraService.Detener();
+            FormClosing += (_, _) =>
+            {
+                _camaraService.Detener();
+                _pictureCamara.Image?.Dispose();
+            };
         }
 
         private void IniciarCamara()
         {
             try
             {
-                _camaraService.Iniciar(indiceCamara: 0);
+                _camaraService.Iniciar(indiceCamara: 1);
             }
             catch (Exception ex)
             {
@@ -114,6 +114,12 @@ namespace AsistenciaQR
                     _lblEstado.Text = "Codigo no reconocido";
                     SystemSounds.Hand.Play();
                     break;
+
+                case ResultadoEscaneo.EstudianteNoEncontrado:
+                    _panelAlerta.BackColor = Color.FromArgb(200, 55, 55);
+                    _lblEstado.Text = "NIE no encontrado o inactivo";
+                    SystemSounds.Hand.Play();
+                    break;
             }
 
             if (resultado.Estudiante is not null)
@@ -149,9 +155,6 @@ namespace AsistenciaQR
                 BackColor = Color.Black
             };
 
-            // Mas alto que antes (90 en vez de 60) para que quepan
-            // dos lineas cuando el mensaje es largo, ej. "Ya registraste
-            // tu asistencia hoy".
             _panelAlerta = new Panel
             {
                 Location = new Point(520, 20),
@@ -169,8 +172,6 @@ namespace AsistenciaQR
             };
             _panelAlerta.Controls.Add(_lblEstado);
 
-            // Mas espacio vertical entre cada linea (antes se
-            // montaban una sobre otra).
             _lblNombre = CrearEtiquetaDato(520, 130, 18, negrita: true);
             _lblNie = CrearEtiquetaDato(520, 180, 13);
             _lblGrado = CrearEtiquetaDato(520, 210, 13);
@@ -189,8 +190,6 @@ namespace AsistenciaQR
                 Size = new Size(200, 28)
             };
 
-            // Tamano explicito: antes no se definia y usaba el
-            // minimo por defecto de Windows, muy chico para el texto.
             _btnRegistrarManual = new Button
             {
                 Text = "Registrar",

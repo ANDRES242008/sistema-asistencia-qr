@@ -8,12 +8,13 @@ namespace AsistenciaQR.Repositorios
     /// </summary>
     public class QRRepository
     {
-        public void Insertar(Qr qr)
+        public int Insertar(Qr qr)
         {
             using var conexion = ConexionSQL.ObtenerConexion();
             const string sql = @"
                 insert into QR (EstudianteId, CodigoQR, RutaImagen, FechaGeneracion, Activo)
-                values (@EstudianteId, @CodigoQR, @RutaImagen, @FechaGeneracion, @Activo);";
+                values (@EstudianteId, @CodigoQR, @RutaImagen, @FechaGeneracion, @Activo);
+                select cast(scope_identity() as int);";
 
             using var comando = new SqlCommand(sql, conexion);
             comando.Parameters.AddWithValue("@EstudianteId", qr.EstudianteId);
@@ -23,7 +24,9 @@ namespace AsistenciaQR.Repositorios
             comando.Parameters.AddWithValue("@Activo", qr.Activo);
 
             conexion.Open();
-            comando.ExecuteNonQuery();
+            int id = (int)comando.ExecuteScalar();
+            qr.QRId = id;
+            return id;
         }
 
         public Qr? ObtenerQrActivo(int estudianteId)

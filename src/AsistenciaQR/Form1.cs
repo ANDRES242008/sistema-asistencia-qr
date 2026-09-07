@@ -1,9 +1,7 @@
-using AsistenciaQR.Repositorios;
-using AsistenciaQR.Servicios;
-using Microsoft.Data.SqlClient;
 using AsistenciaQR.Modelos;
 using AsistenciaQR.Repositorios;
 using AsistenciaQR.Servicios;
+using Microsoft.Data.SqlClient;
 
 namespace AsistenciaQR
 {
@@ -86,6 +84,37 @@ namespace AsistenciaQR
         {
             var kiosco = new FrmKioscoEscaneo();
             kiosco.Show();
+        }
+
+        private void btnAbrirEstudiantes_Click_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmEstudiantes();
+            frm.Show();
+        }
+
+        private void btnAbrirDashboard_Click_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmDashboard();
+            frm.Show();
+        }
+
+        private void btnAbrirReportes_Click_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmReportes();
+            frm.Show();
+        }
+
+        private void btnAbrirCarnetsQR_Click_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmCarnetsQR();
+            frm.Show();
+        }
+
+        private void btnCrearAdmin_Click_Click(object sender, EventArgs e)
+        {
+            var authService = new AuthService();
+            var resultado = authService.Registrar("admin", "Administrador", "admin123", "Administrador");
+            MessageBox.Show(resultado.Mensaje);
         }
     }
 
