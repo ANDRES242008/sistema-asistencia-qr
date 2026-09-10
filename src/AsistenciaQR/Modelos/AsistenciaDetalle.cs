@@ -2,8 +2,8 @@ namespace AsistenciaQR.Modelos
 {
     /// <summary>
     /// Una fila de asistencia combinada con los datos del estudiante.
-    /// Se usa tanto en el Dashboard (un solo dia) como en Reportes
-    /// (rango de fechas), por eso incluye Fecha ademas de Hora.
+    /// EstadoPuntualidad queda vacio para registros anteriores a esta
+    /// funcion (no se reinterpretan retroactivamente).
     /// </summary>
     public class AsistenciaDetalle
     {
@@ -13,5 +13,7 @@ namespace AsistenciaQR.Modelos
         public string Seccion { get; set; } = string.Empty;
         public DateTime Fecha { get; set; }
         public TimeSpan Hora { get; set; }
+        public string? Observacion { get; set; }
+        public string? EstadoPuntualidad { get; set; }
     }
 }

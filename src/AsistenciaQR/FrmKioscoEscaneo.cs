@@ -9,12 +9,14 @@ namespace AsistenciaQR
     /// <summary>
     /// Pantalla principal del kiosco: muestra la camara en vivo,
     /// procesa los codigos QR detectados, y ofrece un respaldo
-    /// manual (escribir el NIE) por si la camara falla.
+    /// manual (escribir el NIE) por si la camara falla. Clasifica
+    /// automaticamente cada entrada como a tiempo o tardanza.
     /// </summary>
     public class FrmKioscoEscaneo : Form
     {
         private readonly CamaraQRService _camaraService = new();
         private readonly AsistenciaService _asistenciaService = new();
+        private readonly ConfiguracionService _configuracionService = new();
 
         private PictureBox _pictureCamara = null!;
         private Panel _panelAlerta = null!;
@@ -34,18 +36,17 @@ namespace AsistenciaQR
             _camaraService.CodigoDetectado += ProcesarCodigoDetectado;
 
             Load += (_, _) => IniciarCamara();
-            FormClosing += (_, _) =>
-            {
-                _camaraService.Detener();
-                _pictureCamara.Image?.Dispose();
-            };
+            FormClosing += (_, _) => _camaraService.Detener();
         }
 
         private void IniciarCamara()
         {
+            var configuracion = _configuracionService.Cargar();
+            _camaraService.SegundosCooldown = configuracion.SegundosCooldown;
+
             try
             {
-                _camaraService.Iniciar(indiceCamara: 1);
+                _camaraService.Iniciar(indiceCamara: configuracion.IndiceCamara);
             }
             catch (Exception ex)
             {
@@ -82,7 +83,7 @@ namespace AsistenciaQR
                 return;
             }
 
-            var resultado = _asistenciaService.RegistrarPorNie(nie);
+            var resultado = _asistenciaService.RegistrarPorNie(nie, "Respaldo manual desde Kiosco");
             MostrarResultado(resultado);
             _txtNieManual.Clear();
         }
@@ -97,14 +98,20 @@ namespace AsistenciaQR
 
             switch (resultado.Estado)
             {
+                case ResultadoEscaneo.Exitoso when resultado.EsTarde:
+                    _panelAlerta.BackColor = Color.FromArgb(230, 159, 0);
+                    _lblEstado.Text = "Llegada tardia";
+                    SystemSounds.Asterisk.Play();
+                    break;
+
                 case ResultadoEscaneo.Exitoso:
                     _panelAlerta.BackColor = Color.FromArgb(46, 160, 67);
-                    _lblEstado.Text = "Asistencia registrada";
+                    _lblEstado.Text = "Asistencia a tiempo";
                     SystemSounds.Asterisk.Play();
                     break;
 
                 case ResultadoEscaneo.YaRegistradoHoy:
-                    _panelAlerta.BackColor = Color.FromArgb(216, 152, 22);
+                    _panelAlerta.BackColor = Color.FromArgb(70, 110, 180);
                     _lblEstado.Text = "Ya registraste tu asistencia hoy";
                     SystemSounds.Hand.Play();
                     break;
@@ -112,12 +119,6 @@ namespace AsistenciaQR
                 case ResultadoEscaneo.CodigoNoValido:
                     _panelAlerta.BackColor = Color.FromArgb(200, 55, 55);
                     _lblEstado.Text = "Codigo no reconocido";
-                    SystemSounds.Hand.Play();
-                    break;
-
-                case ResultadoEscaneo.EstudianteNoEncontrado:
-                    _panelAlerta.BackColor = Color.FromArgb(200, 55, 55);
-                    _lblEstado.Text = "NIE no encontrado o inactivo";
                     SystemSounds.Hand.Play();
                     break;
             }

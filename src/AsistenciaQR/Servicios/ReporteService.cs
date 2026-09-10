@@ -9,16 +9,14 @@ namespace AsistenciaQR.Servicios
 {
     /// <summary>
     /// Logica de negocio de reportes: consulta el historico de
-    /// asistencia con filtros (fecha, grado, seccion, busqueda de
-    /// estudiante) y lo exporta a Excel o PDF.
+    /// asistencia con filtros y lo exporta a Excel o PDF, incluyendo
+    /// Observacion y el Estado de Puntualidad (A tiempo / Tarde).
     /// </summary>
     public class ReporteService
     {
         private readonly AsistenciaRepository _asistenciaRepository = new();
         private readonly EstudianteRepository _estudianteRepository = new();
 
-        // Se registra una sola vez, la primera vez que se usa esta
-        // clase, sin importar cuantas veces se abra la pantalla.
         static ReporteService()
         {
             GlobalFontSettings.FontResolver = new ResolvedorFuentesWindows();
@@ -40,7 +38,7 @@ namespace AsistenciaQR.Servicios
             using var libro = new XLWorkbook();
             var hoja = libro.Worksheets.Add("Asistencias");
 
-            string[] encabezados = { "Fecha", "Hora", "NIE", "Nombre completo", "Grado", "Seccion" };
+            string[] encabezados = { "Fecha", "Hora", "NIE", "Nombre completo", "Grado", "Seccion", "Observacion", "Puntualidad" };
             for (int i = 0; i < encabezados.Length; i++)
             {
                 var celda = hoja.Cell(1, i + 1);
@@ -57,6 +55,8 @@ namespace AsistenciaQR.Servicios
                 hoja.Cell(fila, 4).Value = registro.NombreCompleto;
                 hoja.Cell(fila, 5).Value = registro.Grado;
                 hoja.Cell(fila, 6).Value = registro.Seccion;
+                hoja.Cell(fila, 7).Value = registro.Observacion ?? string.Empty;
+                hoja.Cell(fila, 8).Value = registro.EstadoPuntualidad ?? string.Empty;
                 fila++;
             }
 
@@ -68,6 +68,7 @@ namespace AsistenciaQR.Servicios
         {
             using var documento = new PdfDocument();
             var pagina = documento.AddPage();
+            pagina.Orientation = PdfSharp.PageOrientation.Landscape;
             var graficos = XGraphics.FromPdfPage(pagina);
 
             var fuenteTitulo = new XFont("Segoe UI", 14, XFontStyleEx.Bold);
@@ -76,8 +77,9 @@ namespace AsistenciaQR.Servicios
 
             const double margen = 30;
             double y = margen;
-            double[] anchoColumnas = { 70, 55, 70, 160, 70, 60 };
-            string[] encabezados = { "Fecha", "Hora", "NIE", "Nombre", "Grado", "Seccion" };
+
+            double[] anchoColumnas = { 60, 45, 60, 130, 60, 50, 150, 65 };
+            string[] encabezados = { "Fecha", "Hora", "NIE", "Nombre", "Grado", "Seccion", "Observacion", "Puntual." };
 
             graficos.DrawString("Reporte de Asistencias", fuenteTitulo, XBrushes.Black,
                 new XPoint(margen, y + 15));
@@ -101,6 +103,7 @@ namespace AsistenciaQR.Servicios
                 if (y > pagina.Height.Point - margen)
                 {
                     pagina = documento.AddPage();
+                    pagina.Orientation = PdfSharp.PageOrientation.Landscape;
                     graficos = XGraphics.FromPdfPage(pagina);
                     y = margen;
                     DibujarEncabezado();
@@ -114,7 +117,9 @@ namespace AsistenciaQR.Servicios
                     registro.NIE,
                     registro.NombreCompleto,
                     registro.Grado,
-                    registro.Seccion
+                    registro.Seccion,
+                    registro.Observacion ?? string.Empty,
+                    registro.EstadoPuntualidad ?? string.Empty
                 };
 
                 for (int i = 0; i < valores.Length; i++)

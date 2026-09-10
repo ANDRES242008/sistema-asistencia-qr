@@ -116,6 +116,24 @@ namespace AsistenciaQR
             var resultado = authService.Registrar("admin", "Administrador", "admin123", "Administrador");
             MessageBox.Show(resultado.Mensaje);
         }
+
+        private void btnAbrirExcepciones_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmExcepciones();
+            frm.Show();
+        }
+
+        private void btnAbrirConfiguracion_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmConfiguracion();
+            frm.Show();
+        }
+
+        private void btnAbrirHorarios_Click(object sender, EventArgs e)
+        {
+            var frm = new FrmHorarios();
+            frm.Show();
+        }
     }
 
 }

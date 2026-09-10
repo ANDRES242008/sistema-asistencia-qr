@@ -3,11 +3,6 @@ using AsistenciaQR.Repositorios;
 
 namespace AsistenciaQR.Servicios
 {
-    /// <summary>
-    /// Logica de negocio del Dashboard: junta el conteo de estudiantes
-    /// activos, el conteo de presentes, y el detalle del dia, en un
-    /// solo paquete listo para mostrar en pantalla.
-    /// </summary>
     public class DashboardService
     {
         private readonly AsistenciaRepository _asistenciaRepository = new();
@@ -20,6 +15,7 @@ namespace AsistenciaQR.Servicios
                 Fecha = fecha,
                 TotalActivos = _estudianteRepository.ContarActivos(seccion),
                 Presentes = _asistenciaRepository.ContarPresentesDelDia(fecha, seccion),
+                Tardanzas = _asistenciaRepository.ContarTardanzasDelDia(fecha, seccion),
                 Detalle = _asistenciaRepository.ListarDetalleDelDia(fecha, seccion)
             };
         }

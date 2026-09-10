@@ -25,17 +25,19 @@ namespace AsistenciaQR.Repositorios
             return total > 0;
         }
 
-        public void RegistrarAsistencia(int estudianteId)
+        public void RegistrarAsistencia(int estudianteId, string? observacion, string? estadoPuntualidad)
         {
             using var conexion = ConexionSQL.ObtenerConexion();
             const string sql = @"
-                insert into Asistencia (EstudianteId, Fecha, Hora)
-                values (@EstudianteId, @Fecha, @Hora);";
+                insert into Asistencia (EstudianteId, Fecha, Hora, Observacion, EstadoPuntualidad)
+                values (@EstudianteId, @Fecha, @Hora, @Observacion, @EstadoPuntualidad);";
 
             using var comando = new SqlCommand(sql, conexion);
             comando.Parameters.AddWithValue("@EstudianteId", estudianteId);
             comando.Parameters.AddWithValue("@Fecha", DateTime.Today);
             comando.Parameters.AddWithValue("@Hora", DateTime.Now.TimeOfDay);
+            comando.Parameters.AddWithValue("@Observacion", (object?)observacion ?? DBNull.Value);
+            comando.Parameters.AddWithValue("@EstadoPuntualidad", (object?)estadoPuntualidad ?? DBNull.Value);
 
             conexion.Open();
             comando.ExecuteNonQuery();
@@ -59,13 +61,32 @@ namespace AsistenciaQR.Repositorios
             return (int)comando.ExecuteScalar();
         }
 
+        public int ContarTardanzasDelDia(DateTime fecha, string? seccion = null)
+        {
+            using var conexion = ConexionSQL.ObtenerConexion();
+            const string sql = @"
+                select count(*)
+                from Asistencia a
+                inner join Estudiantes e on e.EstudianteId = a.EstudianteId
+                where a.Fecha = @Fecha
+                  and a.EstadoPuntualidad = 'Tarde'
+                  and (@Seccion is null or e.Seccion = @Seccion);";
+
+            using var comando = new SqlCommand(sql, conexion);
+            comando.Parameters.AddWithValue("@Fecha", fecha.Date);
+            comando.Parameters.AddWithValue("@Seccion", (object?)seccion ?? DBNull.Value);
+
+            conexion.Open();
+            return (int)comando.ExecuteScalar();
+        }
+
         public List<AsistenciaDetalle> ListarDetalleDelDia(DateTime fecha, string? seccion = null)
         {
             var resultado = new List<AsistenciaDetalle>();
 
             using var conexion = ConexionSQL.ObtenerConexion();
             const string sql = @"
-                select e.NIE, e.NombreCompleto, e.Grado, e.Seccion, a.Fecha, a.Hora
+                select e.NIE, e.NombreCompleto, e.Grado, e.Seccion, a.Fecha, a.Hora, a.Observacion, a.EstadoPuntualidad
                 from Asistencia a
                 inner join Estudiantes e on e.EstudianteId = a.EstudianteId
                 where a.Fecha = @Fecha
@@ -95,7 +116,7 @@ namespace AsistenciaQR.Repositorios
 
             using var conexion = ConexionSQL.ObtenerConexion();
             const string sql = @"
-                select e.NIE, e.NombreCompleto, e.Grado, e.Seccion, a.Fecha, a.Hora
+                select e.NIE, e.NombreCompleto, e.Grado, e.Seccion, a.Fecha, a.Hora, a.Observacion, a.EstadoPuntualidad
                 from Asistencia a
                 inner join Estudiantes e on e.EstudianteId = a.EstudianteId
                 where a.Fecha between @FechaInicio and @FechaFin
@@ -131,7 +152,9 @@ namespace AsistenciaQR.Repositorios
                 Grado = lector.GetString(2),
                 Seccion = lector.GetString(3),
                 Fecha = lector.GetDateTime(4),
-                Hora = lector.GetTimeSpan(5)
+                Hora = lector.GetTimeSpan(5),
+                Observacion = lector.IsDBNull(6) ? null : lector.GetString(6),
+                EstadoPuntualidad = lector.IsDBNull(7) ? null : lector.GetString(7)
             };
         }
     }
