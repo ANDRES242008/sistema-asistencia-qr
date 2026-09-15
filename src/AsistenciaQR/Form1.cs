@@ -113,7 +113,7 @@ namespace AsistenciaQR
         private void btnCrearAdmin_Click_Click(object sender, EventArgs e)
         {
             var authService = new AuthService();
-            var resultado = authService.Registrar("admin", "Administrador", "admin123", "Administrador");
+            var resultado = authService.Registrar("docente1", "andres", "docente123", "Docente");
             MessageBox.Show(resultado.Mensaje);
         }
 

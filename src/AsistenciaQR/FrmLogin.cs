@@ -12,13 +12,14 @@ namespace AsistenciaQR
         private const int AnchoColumnaBase = 380;
         private const int AnchoPanelIzquierdo = 500; 
 
-        private const string RutaLogo = "Assets\\login_logo.jpg";
 
         private readonly AuthService _authService = new();
         private float _escala = 1f;
 
         private Panel _panelIzquierdo = null!;
         private Panel _panelDerecho = null!;
+        private const string RutaLogo = "Assets\\login_logo.jpg";
+
         private PictureBox _picLogo = null!;
 
         private Label _lblTitulo = null!;
@@ -37,7 +38,7 @@ namespace AsistenciaQR
         {
             ConstruirInterfaz();
             Load += (_, _) => AplicarEscala();
-            CargarUsuarioRecordado(); 
+            CargarUsuarioRecordado();
         }
 
         private void IntentarLogin()
@@ -59,12 +60,18 @@ namespace AsistenciaQR
                 return;
             }
 
+            // Unico agregado antes: guardar quien inicio sesion para
+            // que BarraLateral sepa que rol tiene.
+            SesionActual.NombreUsuario = usuario;
+            SesionActual.NombreCompleto = usuarioValido.NombreCompleto;
+            SesionActual.Rol = usuarioValido.Rol;
+
             
             GuardarPreferenciaRecordar(usuario);
 
-            Hide();
-            var frmPrincipal = new Form1();
-            frmPrincipal.ShowDialog();
+            // Ya no abre el Dashboard aqui. Program.cs es quien lo
+            // abre, despues de que este ShowDialog() devuelva OK.
+            DialogResult = DialogResult.OK;
             Close();
         }
 
@@ -150,7 +157,6 @@ namespace AsistenciaQR
             _picLogo = new PictureBox
             {
                 Dock = DockStyle.Fill,
-               
                 SizeMode = PictureBoxSizeMode.StretchImage,
                 BackColor = Colores.AzulMarino
             };
@@ -163,6 +169,7 @@ namespace AsistenciaQR
 
             _panelIzquierdo.Controls.Add(_picLogo);
         }
+
         private void ConstruirPanelDerecho()
         {
             _panelDerecho = new Panel

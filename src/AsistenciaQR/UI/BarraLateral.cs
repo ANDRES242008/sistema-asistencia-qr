@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Windows.Forms;
+using AsistenciaQR.Servicios;
 
 namespace AsistenciaQR.UI
 {
@@ -45,13 +46,13 @@ namespace AsistenciaQR.UI
             // inverso al que se ven en pantalla.
             ConstruirCerrarSesion();
 
-            AgregarItem(SeccionMenu.Horarios, "⏰", "Horarios", seccionActiva);
-            AgregarItem(SeccionMenu.Configuracion, "⚙️", "Configuracion", seccionActiva);
-            AgregarItem(SeccionMenu.Excepciones, "✍️", "Excepciones", seccionActiva);
+            AgregarItem(SeccionMenu.Horarios, "⏰", "Horarios", seccionActiva, soloAdministrador: true);
+            AgregarItem(SeccionMenu.Configuracion, "⚙️", "Configuracion", seccionActiva, soloAdministrador: true);
+            AgregarItem(SeccionMenu.Excepciones, "✍️", "Excepciones", seccionActiva, soloAdministrador: true);
             AgregarItem(SeccionMenu.Reportes, "📈", "Reportes", seccionActiva);
-            AgregarItem(SeccionMenu.CarnetsQR, "🪪", "Carnets y QR", seccionActiva);
+            AgregarItem(SeccionMenu.CarnetsQR, "🪪", "Carnets y QR", seccionActiva, soloAdministrador: true);
             AgregarItem(SeccionMenu.Kiosco, "✅", "Asistencia del Dia", seccionActiva);
-            AgregarItem(SeccionMenu.Estudiantes, "👥", "Estudiantes", seccionActiva);
+            AgregarItem(SeccionMenu.Estudiantes, "👥", "Estudiantes", seccionActiva, soloAdministrador: true);
             AgregarItem(SeccionMenu.Dashboard, "📊", "Dashboard", seccionActiva);
 
             ConstruirEncabezado();
@@ -74,8 +75,12 @@ namespace AsistenciaQR.UI
             Controls.Add(_panelEncabezado);
         }
 
-        private void AgregarItem(SeccionMenu seccion, string icono, string texto, SeccionMenu seccionActiva)
+        private void AgregarItem(SeccionMenu seccion, string icono, string texto, SeccionMenu seccionActiva, bool soloAdministrador = false)
         {
+            // Si es una seccion solo-Administrador y quien inicio
+            // sesion es Docente, ni se construye el boton.
+            if (soloAdministrador && !SesionActual.EsAdministrador) return;
+
             bool esActiva = seccion == seccionActiva;
 
             var item = new Panel

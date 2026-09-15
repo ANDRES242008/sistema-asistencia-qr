@@ -18,7 +18,18 @@ namespace AsistenciaQR
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(new FrmLogin());
+
+            // FrmLogin ya NO es la ventana principal de la app: se
+            // muestra como dialogo (ShowDialog). Solo si el login es
+            // correcto arranca la app de verdad con FrmDashboard como
+            // ventana principal. Antes, cerrar FrmLogin despues de
+            // abrir el Dashboard mataba toda la aplicacion (cerrar la
+            // ventana de Application.Run termina el proceso completo).
+            using var login = new FrmLogin();
+            if (login.ShowDialog() == DialogResult.OK)
+            {
+                Application.Run(new FrmDashboard());
+            }
         }
     }
 }
