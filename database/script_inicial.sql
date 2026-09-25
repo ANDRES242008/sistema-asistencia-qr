@@ -43,9 +43,10 @@ alter table QR add constraint uq_QR_CodigoQR unique (CodigoQR);
 alter table Asistencia add constraint uq_Asistencia_Estudiante_Fecha unique (EstudianteId, Fecha);
 
 
--- ============================================
 -- Llaves foráneas
--- ============================================
 alter table QR add constraint fk_QR_Estudiantes foreign key (EstudianteId) references Estudiantes(EstudianteId) on update cascade on delete cascade;
 alter table Asistencia add constraint fk_Asistencia_Estudiantes foreign key (EstudianteId) references Estudiantes(EstudianteId) on update cascade on delete cascade;
 
+select * from Estudiantes
+
+SELECT * FROM Usuarios

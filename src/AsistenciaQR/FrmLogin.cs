@@ -6,11 +6,11 @@ using AsistenciaQR.UI;
 
 namespace AsistenciaQR
 {
-    
+
     public class FrmLogin : Form
     {
         private const int AnchoColumnaBase = 380;
-        private const int AnchoPanelIzquierdo = 500; 
+        private const int AnchoPanelIzquierdo = 500;
 
 
         private readonly AuthService _authService = new();
@@ -66,7 +66,7 @@ namespace AsistenciaQR
             SesionActual.NombreCompleto = usuarioValido.NombreCompleto;
             SesionActual.Rol = usuarioValido.Rol;
 
-            
+
             GuardarPreferenciaRecordar(usuario);
 
             // Ya no abre el Dashboard aqui. Program.cs es quien lo
@@ -84,12 +84,12 @@ namespace AsistenciaQR
                 {
                     _campoUsuario.Text = Properties.Settings.Default.UsuarioGuardado;
                     _chkRecordarme.Checked = true;
-                    _campoContrasena.Focus(); 
+                    _campoContrasena.Focus();
                 }
             }
             catch
             {
-              
+
             }
         }
 
@@ -112,7 +112,7 @@ namespace AsistenciaQR
             }
             catch
             {
-                
+
             }
         }
 
@@ -253,7 +253,18 @@ namespace AsistenciaQR
             });
         }
 
-        
+        private void InitializeComponent()
+        {
+            SuspendLayout();
+            // 
+            // FrmLogin
+            // 
+            ClientSize = new Size(1205, 812);
+            Name = "FrmLogin";
+            ResumeLayout(false);
+
+        }
+
         private void AplicarEscala()
         {
             if (_panelDerecho.Width <= 0) return;

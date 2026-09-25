@@ -1,7 +1,5 @@
 
--- Modificacion de esquema: agrega Observacion a
--- Asistencia, para registros manuales de excepcion
--- (sin carnet, QR dañado, etc.)
+-- agrega Observacion a  Asistencia, para registros manuales de excepcion (sin carnet, qr dañado, etc.)
 
 use AsistenciaQR;
 go

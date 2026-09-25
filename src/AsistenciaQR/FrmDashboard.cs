@@ -9,12 +9,10 @@ using AsistenciaQR.UI;
 
 namespace AsistenciaQR
 {
-    /// <summary>
-    /// Panel de Asistencia del Dia, rediseñado en la Fase 4:
-    /// menu lateral de navegacion, tarjetas de estadisticas,
-    /// busqueda en vivo, tabla paginada con badges de color para
-    /// la puntualidad, y exportacion a Excel / vista de impresion.
-    /// </summary>
+
+    /// Panel de Asistencia del Dia
+
+
     public class FrmDashboard : Form
     {
         private const int FilasPorPagina = 10;
@@ -390,6 +388,11 @@ namespace AsistenciaQR
             };
             boton.FlatAppearance.BorderColor = Color.FromArgb(219, 224, 230);
             return boton;
+        }
+
+        private void InitializeComponent()
+        {
+
         }
 
         /// <summary>

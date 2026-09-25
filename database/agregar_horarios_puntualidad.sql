@@ -1,8 +1,5 @@
 
 -- Control de Puntualidad
---nueva tabla para la hora de inicio de clases + tolerancia
---  y una columna en Asistencia para guardar la clasificacion.
-
 
 use AsistenciaQR;
 go

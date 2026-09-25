@@ -5,7 +5,7 @@ using Microsoft.Data.SqlClient;
 
 namespace AsistenciaQR
 {
-  public partial class Form1 : FrmDashboard
+  public partial class Form1 : FrmLogin
     {
         public Form1()
         {
