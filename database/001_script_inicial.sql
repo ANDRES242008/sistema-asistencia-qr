@@ -1,7 +1,9 @@
 
 create database AsistenciaQR;
+go
 
 use AsistenciaQR;
+go
 
 create table Estudiantes (
     EstudianteId int identity(1,1) not null,
@@ -46,7 +48,4 @@ alter table Asistencia add constraint uq_Asistencia_Estudiante_Fecha unique (Est
 -- Llaves foráneas
 alter table QR add constraint fk_QR_Estudiantes foreign key (EstudianteId) references Estudiantes(EstudianteId) on update cascade on delete cascade;
 alter table Asistencia add constraint fk_Asistencia_Estudiantes foreign key (EstudianteId) references Estudiantes(EstudianteId) on update cascade on delete cascade;
-
-select * from Estudiantes
-
-SELECT * FROM Usuarios
+go

@@ -35,6 +35,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="AsistenciaQR.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\escudo_sonsonate.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -22,7 +22,16 @@ namespace AsistenciaQR.Servicios
         public bool EsTarde(TimeSpan horaRegistro)
         {
             var configuracion = ObtenerActual();
-            var limite = configuracion.HoraInicio + TimeSpan.FromMinutes(configuracion.MinutosTolerancia);
+            return EsTarde(horaRegistro, configuracion.HoraInicio, configuracion.MinutosTolerancia);
+        }
+
+        /// <summary>
+        /// Regla pura de puntualidad, sin base de datos: llegar justo
+        /// en el limite (inicio + tolerancia) todavia cuenta a tiempo.
+        /// </summary>
+        public static bool EsTarde(TimeSpan horaRegistro, TimeSpan horaInicio, int minutosTolerancia)
+        {
+            var limite = horaInicio + TimeSpan.FromMinutes(minutosTolerancia);
             return horaRegistro > limite;
         }
     }

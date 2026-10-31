@@ -2,6 +2,7 @@
 
 > Control de asistencia estudiantil por código QR, con clasificación automática de puntualidad.
 
+[![CI](https://github.com/ANDRES242008/sistema-asistencia-qr/actions/workflows/ci.yml/badge.svg)](https://github.com/ANDRES242008/sistema-asistencia-qr/actions/workflows/ci.yml)
 ![Status](https://img.shields.io/badge/status-v1.0-brightgreen)
 ![C%23](https://img.shields.io/badge/C%23-.NET%208-blueviolet)
 ![WinForms](https://img.shields.io/badge/UI-Windows%20Forms-blue)
@@ -106,6 +107,7 @@ Pantallas (Windows Forms)  →  Servicios (reglas de negocio)  →  Repositorios
 | `Servicios/` | Reglas de negocio: `AsistenciaService`, `AuthService`, `ConfiguracionHorarioService`, `CarnetService`, `ReporteService`, `CamaraQRService`, etc. |
 | `Repositorios/` | Acceso a datos, un repositorio por tabla. |
 | `Modelos/` | Clases planas que representan cada tabla y los resultados de las operaciones. |
+| `tests/AsistenciaQR.Tests/` | Pruebas unitarias (xUnit) de las reglas de negocio. |
 
 Las pantallas nunca hablan con la base de datos directamente: piden
 todo a un servicio, y solo los repositorios ejecutan SQL.
@@ -129,35 +131,41 @@ superior, por el formato `.slnx`) y una cámara web.
 2. Abre `src/AsistenciaQR/AsistenciaQR.slnx` en Visual Studio. Los
    paquetes NuGet se restauran solos al compilar (la primera vez
    necesita internet).
-3. Crea la base de datos ejecutando los scripts de `database/` en
-   SQL Server Management Studio, **en este orden**:
+3. Crea la base de datos. Con `sqlcmd` instalado, un solo comando
+   ejecuta todos los scripts en orden (cambia la instancia si no es
+   `.\SQLEXPRESS`):
+   ```bash
+   database\instalar_todo.cmd .\SQLEXPRESS
+   ```
+   También puedes abrirlos en SQL Server Management Studio y
+   ejecutarlos uno por uno, en el orden de su número:
 
    | # | Script | Qué hace |
    |---|---|---|
-   | 1 | `script_inicial.sql` | Crea la base y las tablas `Estudiantes`, `QR` y `Asistencia` |
-   | 2 | `alter_qr_rutaimagen.sql` | Agrega la ruta de la imagen QR |
-   | 3 | `agregar_columna_observacion.sql` | Agrega observaciones para excepciones |
-   | 4 | `agregar_tabla_usuarios.sql` | Crea la tabla de usuarios para el login |
-   | 5 | `agregar_horarios_puntualidad.sql` | Crea la configuración de horario y tolerancia |
+   | 1 | `001_script_inicial.sql` | Crea la base y las tablas `Estudiantes`, `QR` y `Asistencia` |
+   | 2 | `002_qr_rutaimagen.sql` | Agrega la ruta de la imagen QR |
+   | 3 | `003_columna_observacion.sql` | Agrega observaciones para excepciones |
+   | 4 | `004_tabla_usuarios.sql` | Crea la tabla de usuarios para el login |
+   | 5 | `005_horarios_puntualidad.sql` | Crea la configuración de horario y tolerancia |
 
-4. Abre `src/AsistenciaQR/Repositorios/ConexionSQL.cs` y cambia
-   `Server=ANDRES\SQLEXPRESS` por el nombre de tu instancia de
-   SQL Server.
+4. Si tu SQL Server no es la instancia local `.\SQLEXPRESS`, cambia la
+   cadena de conexión en `src/AsistenciaQR/appsettings.json`:
+   ```json
+   { "ConnectionStrings": { "AsistenciaQR": "Server=TU-SERVIDOR\\SQLEXPRESS;Database=AsistenciaQR;Trusted_Connection=True;TrustServerCertificate=True;" } }
+   ```
+   También puedes definir la variable de entorno `ASISTENCIAQR_CONEXION`,
+   que tiene prioridad sobre el archivo. Ya no hace falta tocar el código.
 5. Presiona **F5**.
 
 ## Primer uso: crear tu cuenta
 
-La base de datos empieza sin cuentas. Para crear la primera, pega esto
-justo antes de `ApplicationConfiguration.Initialize();` en
-`Program.cs`, corre el proyecto una vez y luego bórralo:
+La base de datos empieza sin cuentas. La primera vez que abres el
+programa aparece un asistente de **Configuración inicial** que pide
+nombre, usuario y contraseña (mínimo 8 caracteres) para crear la cuenta
+de Administrador. Después se abre el inicio de sesión normal.
 
-```csharp
-var authService = new AsistenciaQR.Servicios.AuthService();
-var resultado = authService.Registrar("admin", "Administrador", "una-contrasena-segura", "Administrador");
-MessageBox.Show(resultado.Mensaje);
-```
-
-Usa `"Docente"` como rol para crear una cuenta de docente.
+Si el programa no logra conectarse a SQL Server, te dice exactamente
+qué archivo revisar en vez de cerrarse.
 
 ## Roles
 
@@ -168,10 +176,19 @@ Usa `"Docente"` como rol para crear una cuenta de docente.
 
 ## Pruebas
 
-El núcleo del sistema (CRUD de estudiantes, QR, escaneo, dashboard y
-reportes) tiene un ejecutor de pruebas automatizado. Necesita la base
-de datos configurada; crea sus propios datos de prueba y los elimina al
-terminar:
+**Pruebas unitarias (xUnit).** Cubren las reglas de negocio sin
+necesitar SQL Server: clasificación de puntualidad, validación de
+estudiantes, hash y verificación de contraseñas, lectura de la
+configuración y exportación a Excel. Se ejecutan en cada push con
+GitHub Actions:
+
+```bash
+dotnet test tests/AsistenciaQR.Tests
+```
+
+**Pruebas de integración.** Recorren el núcleo completo (CRUD de
+estudiantes, QR, escaneo, dashboard y reportes) contra la base de datos
+real; crean sus propios datos de prueba y los eliminan al terminar:
 
 ```bash
 dotnet run --project src/AsistenciaQR -- --probar-nucleo
@@ -190,10 +207,11 @@ manuales de interfaz están en los checklists de la raíz del repositorio.
 
 ## Hoja de ruta
 
-- [ ] Cadena de conexión en un archivo de configuración, fuera del código
-- [ ] Asistente de primer uso para crear el administrador
-- [ ] Proyecto de pruebas unitarias e integración continua (GitHub Actions)
-- [ ] Instalador y versión publicada en Releases
+- [x] Cadena de conexión en un archivo de configuración, fuera del código
+- [x] Asistente de primer uso para crear el administrador
+- [x] Proyecto de pruebas unitarias e integración continua (GitHub Actions)
+- [x] Ejecutable listo para descargar en Releases (se genera solo al crear un tag `v*`)
+- [ ] Instalador con configuración automática de la base de datos
 - [ ] Gestión de usuarios desde la aplicación
 - [ ] Importar estudiantes desde Excel
 - [ ] Notificaciones a padres de familia por tardanza o ausencia

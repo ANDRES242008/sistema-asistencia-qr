@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="AsistenciaQR.csproj" />
+  <Project Path="../../tests/AsistenciaQR.Tests/AsistenciaQR.Tests.csproj" />
 </Solution>

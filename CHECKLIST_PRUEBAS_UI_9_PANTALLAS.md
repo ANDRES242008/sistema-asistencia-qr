@@ -8,7 +8,7 @@ y funcional de cada pantalla antes del tag v1.0.
 ## Antes de empezar
 
 - [ ] Compila sin errores ni advertencias nuevas.
-- [ ] SQL Server corriendo en `ANDRES\SQLEXPRESS`.
+- [ ] SQL Server corriendo en la instancia configurada en `appsettings.json` (por defecto `.\SQLEXPRESS`).
 - [ ] Webcam Argom CAM45 conectada.
 - [ ] Al menos 3 estudiantes de prueba, con carnet/QR generado.
 

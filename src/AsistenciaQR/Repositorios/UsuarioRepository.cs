@@ -34,6 +34,17 @@ namespace AsistenciaQR.Repositorios
             };
         }
 
+        public int ContarUsuarios()
+        {
+            using var conexion = ConexionSQL.ObtenerConexion();
+            const string sql = "select count(*) from Usuarios;";
+
+            using var comando = new SqlCommand(sql, conexion);
+
+            conexion.Open();
+            return (int)comando.ExecuteScalar();
+        }
+
         public int Insertar(Usuario usuario)
         {
             using var conexion = ConexionSQL.ObtenerConexion();

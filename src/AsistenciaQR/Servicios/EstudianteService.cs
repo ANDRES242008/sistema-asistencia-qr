@@ -92,7 +92,7 @@ namespace AsistenciaQR.Servicios
             return rutaDestino;
         }
 
-        private static ResultadoOperacion Validar(Estudiante estudiante)
+        internal static ResultadoOperacion Validar(Estudiante estudiante)
         {
             if (string.IsNullOrWhiteSpace(estudiante.NIE) ||
                 !estudiante.NIE.All(char.IsDigit) ||
