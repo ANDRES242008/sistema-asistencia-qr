@@ -7,7 +7,8 @@ if "%INSTANCIA%"=="" set INSTANCIA=.\SQLEXPRESS
 
 for %%f in ("%~dp00*.sql") do (
     echo Ejecutando %%~nxf ...
-    sqlcmd -S "%INSTANCIA%" -E -b -i "%%f" || goto :error
+    rem -C: confiar en el certificado propio de SQL Express (sqlcmd 18+ lo exige)
+    sqlcmd -S "%INSTANCIA%" -E -C -b -i "%%f" || goto :error
 )
 
 echo.

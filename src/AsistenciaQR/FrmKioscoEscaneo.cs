@@ -218,11 +218,19 @@ namespace AsistenciaQR
                     _lblEstadoGrande.Text = "CODIGO NO VALIDO";
                     SystemSounds.Hand.Play();
                     break;
+
+                case ResultadoEscaneo.EstudianteNoEncontrado:
+                    _lblEstadoGrande.ForeColor = Color.Firebrick;
+                    _lblEstadoGrande.Text = "NIE NO ENCONTRADO";
+                    SystemSounds.Hand.Play();
+                    break;
             }
 
             _lblEstadoSubtitulo.Text = resultado.Estudiante is not null
                 ? $"{resultado.Estudiante.NombreCompleto}  ·  NIE {resultado.Estudiante.NIE}  ·  {(resultado.HoraRegistro ?? DateTime.Now):hh:mm tt}"
-                : "Verifica el carnet e intenta de nuevo.";
+                : resultado.Estado == ResultadoEscaneo.EstudianteNoEncontrado
+                    ? "Verifica el NIE e intenta de nuevo."
+                    : "Verifica el carnet e intenta de nuevo.";
 
             _campoNieManual.Limpiar();
             AplicarEscala();

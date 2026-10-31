@@ -41,6 +41,12 @@ namespace AsistenciaQR.UI
             set => _txt.Text = value;
         }
 
+        public bool EsContrasena
+        {
+            get => _txt.UseSystemPasswordChar;
+            set => _txt.UseSystemPasswordChar = value;
+        }
+
         public bool Habilitado
         {
             get => _txt.Enabled;

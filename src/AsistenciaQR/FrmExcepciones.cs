@@ -203,6 +203,7 @@ namespace AsistenciaQR
                     break;
 
                 case ResultadoEscaneo.CodigoNoValido:
+                case ResultadoEscaneo.EstudianteNoEncontrado:
                     _lblResultado.ForeColor = Color.Firebrick;
                     _lblResultado.Text = "No se pudo registrar (estudiante no valido).";
                     break;

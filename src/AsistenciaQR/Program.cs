@@ -64,16 +64,18 @@ namespace AsistenciaQR
             bool necesitaPrimerUsuario;
             try
             {
+                Repositorios.EsquemaRepository.AplicarActualizaciones();
                 necesitaPrimerUsuario = new Servicios.AuthService().NecesitaPrimerUsuario();
             }
             catch (Microsoft.Data.SqlClient.SqlException ex)
             {
                 RegistrarEnLog(ex);
                 MessageBox.Show(
-                    "No se pudo conectar a la base de datos.\n\n" +
+                    "No se pudo preparar la base de datos.\n\n" +
                     "Revisa que SQL Server este encendido y que la cadena de conexion sea correcta en:\n" +
                     $"{Repositorios.ConexionSQL.RutaArchivo}\n\n" +
-                    $"(o en la variable de entorno {Repositorios.ConexionSQL.VariableEntorno}).",
+                    $"(o en la variable de entorno {Repositorios.ConexionSQL.VariableEntorno}).\n\n" +
+                    $"Detalle: {ex.Message}",
                     "AsistenciaQR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }

@@ -10,5 +10,8 @@ namespace AsistenciaQR.Modelos
         public string Rol { get; set; } = string.Empty;
         public bool Activo { get; set; }
         public DateTime FechaRegistro { get; set; }
+        public int IntentosFallidos { get; set; }
+        public DateTime? BloqueadoHasta { get; set; }
+        public bool DebeCambiarContrasena { get; set; }
     }
 }

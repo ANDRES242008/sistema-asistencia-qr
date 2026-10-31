@@ -34,7 +34,7 @@ namespace AsistenciaQR.Servicios
             var estudiante = _estudianteRepository.ObtenerPorNIE(nie);
             if (estudiante is null || !estudiante.Activo)
             {
-                return new ResultadoAsistencia { Estado = ResultadoEscaneo.CodigoNoValido };
+                return new ResultadoAsistencia { Estado = ResultadoEscaneo.EstudianteNoEncontrado };
             }
 
             return RegistrarAsistenciaEstudiante(estudiante, observacion);

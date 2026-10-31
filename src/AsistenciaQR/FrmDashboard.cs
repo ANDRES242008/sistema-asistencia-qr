@@ -305,10 +305,19 @@ namespace AsistenciaQR
                 SeccionMenu.Excepciones => new FrmExcepciones(),
                 SeccionMenu.Configuracion => new FrmConfiguracion(),
                 SeccionMenu.Horarios => new FrmHorarios(),
+                SeccionMenu.Usuarios => new FrmUsuarios(),
                 _ => null
             };
 
             destino?.Show();
+        }
+
+        private void CambiarContrasena()
+        {
+            if (SesionActual.UsuarioId is not int usuarioId) return;
+
+            using var dialogo = new FrmCambiarContrasena(usuarioId, obligatorio: false);
+            dialogo.ShowDialog(this);
         }
 
         private void CerrarSesion()
@@ -340,6 +349,7 @@ namespace AsistenciaQR
             _barraLateral = new BarraLateral(SeccionMenu.Dashboard);
             _barraLateral.SeccionSeleccionada += AbrirSeccion;
             _barraLateral.CerrarSesionSolicitado += CerrarSesion;
+            _barraLateral.CambiarContrasenaSolicitado += CambiarContrasena;
             Controls.Add(_barraLateral);
 
             Resize += (_, _) => AplicarEscala();

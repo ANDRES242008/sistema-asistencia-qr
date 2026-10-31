@@ -10,6 +10,7 @@ namespace AsistenciaQR.Servicios
     /// </summary>
     public static class SesionActual
     {
+        public static int? UsuarioId { get; set; }
         public static string? NombreUsuario { get; set; }
         public static string? NombreCompleto { get; set; }
         public static string? Rol { get; set; }
@@ -19,6 +20,7 @@ namespace AsistenciaQR.Servicios
 
         public static void Limpiar()
         {
+            UsuarioId = null;
             NombreUsuario = null;
             NombreCompleto = null;
             Rol = null;

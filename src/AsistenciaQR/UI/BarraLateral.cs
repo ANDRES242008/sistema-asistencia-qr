@@ -7,7 +7,7 @@ namespace AsistenciaQR.UI
     /// <summary>Cada pantalla del sistema, para que la barra sepa cual marcar como activa.</summary>
     public enum SeccionMenu
     {
-        Dashboard, Estudiantes, Kiosco, CarnetsQR, Reportes, Excepciones, Configuracion, Horarios
+        Dashboard, Estudiantes, Kiosco, CarnetsQR, Reportes, Excepciones, Configuracion, Horarios, Usuarios
     }
 
     /// <summary>
@@ -22,7 +22,7 @@ namespace AsistenciaQR.UI
         private const int AnchoBase = 240;
         private const int AlturaItemBase = 56; // antes 46, mas espacio por opcion
         private const int AlturaEncabezadoBase = 80; // antes 70
-        private const int AlturaCerrarSesionBase = 74; // antes 64
+        private const int AlturaCerrarSesionBase = 100; // incluye "Cambiar contrasena"
 
         private Panel _panelEncabezado = null!;
         private Label _lblLogo = null!;
@@ -31,9 +31,11 @@ namespace AsistenciaQR.UI
 
         private Panel _panelCerrarSesion = null!;
         private Label _lblCerrarSesion = null!;
+        private Label _lblCambiarContrasena = null!;
 
         public event Action<SeccionMenu>? SeccionSeleccionada;
         public event Action? CerrarSesionSolicitado;
+        public event Action? CambiarContrasenaSolicitado;
 
         public BarraLateral(SeccionMenu seccionActiva)
         {
@@ -46,6 +48,7 @@ namespace AsistenciaQR.UI
             // inverso al que se ven en pantalla.
             ConstruirCerrarSesion();
 
+            AgregarItem(SeccionMenu.Usuarios, "🔐", "Usuarios", seccionActiva, soloAdministrador: true);
             AgregarItem(SeccionMenu.Horarios, "⏰", "Horarios", seccionActiva, soloAdministrador: true);
             AgregarItem(SeccionMenu.Configuracion, "⚙️", "Configuracion", seccionActiva, soloAdministrador: true);
             AgregarItem(SeccionMenu.Excepciones, "✍️", "Excepciones", seccionActiva, soloAdministrador: true);
@@ -145,7 +148,21 @@ namespace AsistenciaQR.UI
             };
             _lblCerrarSesion.Click += (_, _) => CerrarSesionSolicitado?.Invoke();
 
+            // Disponible para cualquier rol: cada quien cambia la suya.
+            _lblCambiarContrasena = new Label
+            {
+                Text = "🔑  Cambiar contrasena",
+                Font = new Font("Segoe UI Emoji", 8.5f),
+                ForeColor = Color.FromArgb(200, 210, 225),
+                Dock = DockStyle.Top,
+                Height = 26,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Cursor = Cursors.Hand
+            };
+            _lblCambiarContrasena.Click += (_, _) => CambiarContrasenaSolicitado?.Invoke();
+
             _panelCerrarSesion.Controls.Add(_lblCerrarSesion);
+            _panelCerrarSesion.Controls.Add(_lblCambiarContrasena);
             _panelCerrarSesion.Controls.Add(separador);
             Controls.Add(_panelCerrarSesion);
         }
@@ -173,6 +190,8 @@ namespace AsistenciaQR.UI
 
             _panelCerrarSesion.Height = (int)(AlturaCerrarSesionBase * escala);
             _lblCerrarSesion.Font = new Font("Segoe UI Emoji", 11 * escala, FontStyle.Bold);
+            _lblCambiarContrasena.Font = new Font("Segoe UI Emoji", 8.5f * escala);
+            _lblCambiarContrasena.Height = (int)(26 * escala);
         }
     }
 }

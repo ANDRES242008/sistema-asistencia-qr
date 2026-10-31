@@ -52,16 +52,29 @@ namespace AsistenciaQR
                 return;
             }
 
-            var usuarioValido = _authService.ValidarLogin(usuario, contrasena);
+            var resultado = _authService.IniciarSesion(usuario, contrasena);
 
-            if (usuarioValido is null)
+            if (resultado.Usuario is not { } usuarioValido)
             {
-                MostrarError("Usuario o contrasena incorrectos.");
+                MostrarError(resultado.Mensaje);
                 return;
             }
 
-            // Unico agregado antes: guardar quien inicio sesion para
-            // que BarraLateral sepa que rol tiene.
+            // Si un Administrador reseteo la contrasena, no se entra
+            // al sistema hasta que el usuario elija una propia.
+            if (usuarioValido.DebeCambiarContrasena)
+            {
+                using var cambio = new FrmCambiarContrasena(usuarioValido.UsuarioId, obligatorio: true);
+                if (cambio.ShowDialog(this) != DialogResult.OK)
+                {
+                    _campoContrasena.Text = string.Empty;
+                    return;
+                }
+            }
+
+            // Guardar quien inicio sesion para que BarraLateral sepa
+            // que rol tiene.
+            SesionActual.UsuarioId = usuarioValido.UsuarioId;
             SesionActual.NombreUsuario = usuario;
             SesionActual.NombreCompleto = usuarioValido.NombreCompleto;
             SesionActual.Rol = usuarioValido.Rol;

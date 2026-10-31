@@ -57,10 +57,13 @@ sigue en desarrollo.
   porcentaje de asistencia del día.
 - 📈 **Reportes filtrables**: por fecha, grado o sección, exportables
   a Excel y PDF.
-- 👤 **Roles**: Administrador (acceso total) y Docente (Dashboard,
-  Kiosco y Reportes).
+- 👤 **Roles y cuentas**: Administrador (acceso total) y Docente
+  (Dashboard, Kiosco y Reportes). El Administrador crea cuentas,
+  cambia roles, desactiva usuarios y resetea contraseñas desde la app.
 - 🔒 **Seguridad por diseño**: contraseñas con hash PBKDF2-SHA256 y sal
-  por usuario, comparación en tiempo constante, consultas SQL
+  por usuario, comparación en tiempo constante, bloqueo de 15 minutos
+  tras 5 intentos fallidos, contraseñas temporales que se deben cambiar
+  al entrar, siempre al menos un Administrador activo, consultas SQL
   parametrizadas y códigos QR sin datos personales.
 - 🛡️ **Estabilidad**: los errores inesperados quedan registrados en un
   log en vez de cerrar la aplicación, y solo puede abrirse una
@@ -147,6 +150,10 @@ superior, por el formato `.slnx`) y una cámara web.
    | 3 | `003_columna_observacion.sql` | Agrega observaciones para excepciones |
    | 4 | `004_tabla_usuarios.sql` | Crea la tabla de usuarios para el login |
    | 5 | `005_horarios_puntualidad.sql` | Crea la configuración de horario y tolerancia |
+   | 6 | `006_seguridad_usuarios.sql` | Bloqueo por intentos fallidos y cambio obligatorio de contraseña |
+
+   Si actualizas desde una versión anterior, no necesitas correr los
+   scripts nuevos: la app aplica sola los cambios pendientes al arrancar.
 
 4. Si tu SQL Server no es la instancia local `.\SQLEXPRESS`, cambia la
    cadena de conexión en `src/AsistenciaQR/appsettings.json`:
@@ -171,14 +178,26 @@ qué archivo revisar en vez de cerrarse.
 
 | Rol | Acceso |
 |---|---|
-| **Administrador** | Todas las pantallas: Dashboard, Estudiantes, Kiosco, Carnets, Reportes, Excepciones, Configuración y Horarios |
+| **Administrador** | Todas las pantallas: Dashboard, Estudiantes, Kiosco, Carnets, Reportes, Excepciones, Configuración, Horarios y Usuarios |
 | **Docente** | Dashboard, Kiosco (asistencia del día) y Reportes |
+
+Cualquier usuario puede cambiar su propia contraseña desde el menú
+lateral (**Cambiar contraseña**).
+
+### Gestión de usuarios
+
+En **Usuarios**, el Administrador crea las cuentas de los docentes. El
+sistema genera una contraseña temporal, la copia al portapapeles y la
+muestra una sola vez; el docente debe cambiarla la primera vez que
+inicia sesión. Si alguien olvida su contraseña o bloquea su cuenta por
+intentos fallidos, el Administrador la resetea de la misma forma.
 
 ## Pruebas
 
 **Pruebas unitarias (xUnit).** Cubren las reglas de negocio sin
 necesitar SQL Server: clasificación de puntualidad, validación de
-estudiantes, hash y verificación de contraseñas, lectura de la
+estudiantes, hash y verificación de contraseñas, bloqueo por intentos
+fallidos, protección del último Administrador, lectura de la
 configuración y exportación a Excel. Se ejecutan en cada push con
 GitHub Actions:
 
@@ -211,9 +230,12 @@ manuales de interfaz están en los checklists de la raíz del repositorio.
 - [x] Asistente de primer uso para crear el administrador
 - [x] Proyecto de pruebas unitarias e integración continua (GitHub Actions)
 - [x] Ejecutable listo para descargar en Releases (se genera solo al crear un tag `v*`)
+- [x] Gestión de usuarios desde la aplicación, con bloqueo por intentos fallidos
+- [ ] Importar estudiantes desde Excel y carnets en lote
+- [ ] Respaldos de la base de datos desde la app
+- [ ] Bitácora de auditoría
+- [ ] Personalización por institución (nombre, logo, colores)
 - [ ] Instalador con configuración automática de la base de datos
-- [ ] Gestión de usuarios desde la aplicación
-- [ ] Importar estudiantes desde Excel
 - [ ] Notificaciones a padres de familia por tardanza o ausencia
 
 ## Autor
