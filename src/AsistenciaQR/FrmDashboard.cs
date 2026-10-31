@@ -306,6 +306,7 @@ namespace AsistenciaQR
                 SeccionMenu.Configuracion => new FrmConfiguracion(),
                 SeccionMenu.Horarios => new FrmHorarios(),
                 SeccionMenu.Usuarios => new FrmUsuarios(),
+                SeccionMenu.Bitacora => new FrmBitacora(),
                 _ => null
             };
 

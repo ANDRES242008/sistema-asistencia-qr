@@ -52,6 +52,7 @@ namespace AsistenciaQR.Servicios
                 return ResultadoOperacion.Error("Ya existe un estudiante registrado con ese NIE.");
             }
 
+            BitacoraService.Registrar(BitacoraService.EstudianteCreado, BitacoraService.DescribirEstudiante(estudiante));
             return ResultadoOperacion.Ok("Estudiante registrado correctamente.");
         }
 
@@ -65,7 +66,19 @@ namespace AsistenciaQR.Servicios
                 estudiante.FotoRuta = GuardarFoto(rutaFotoOrigen, estudiante.NIE);
             }
 
+            var anterior = _estudianteRepository.ObtenerPorId(estudiante.EstudianteId);
             _estudianteRepository.Actualizar(estudiante);
+
+            if (anterior is not null)
+            {
+                string cambios = BitacoraService.DescribirCambios(
+                    ("Nombre", anterior.NombreCompleto, estudiante.NombreCompleto),
+                    ("Grado", anterior.Grado, estudiante.Grado),
+                    ("Seccion", anterior.Seccion, estudiante.Seccion),
+                    ("Correo", anterior.Correo, estudiante.Correo),
+                    ("Foto", anterior.FotoRuta is null ? null : "si", estudiante.FotoRuta is null ? null : (rutaFotoOrigen is null ? "si" : "nueva")));
+                BitacoraService.Registrar(BitacoraService.EstudianteEditado, $"NIE {estudiante.NIE} · {cambios}");
+            }
 
             return ResultadoOperacion.Ok("Cambios guardados correctamente.");
         }
@@ -73,13 +86,21 @@ namespace AsistenciaQR.Servicios
         public ResultadoOperacion DarDeBaja(int estudianteId)
         {
             _estudianteRepository.DarDeBaja(estudianteId);
+            RegistrarEnBitacora(BitacoraService.EstudianteDadoDeBaja, estudianteId);
             return ResultadoOperacion.Ok("Estudiante dado de baja.");
         }
 
         public ResultadoOperacion Reactivar(int estudianteId)
         {
             _estudianteRepository.Reactivar(estudianteId);
+            RegistrarEnBitacora(BitacoraService.EstudianteReactivado, estudianteId);
             return ResultadoOperacion.Ok("Estudiante reactivado.");
+        }
+
+        private void RegistrarEnBitacora(string accion, int estudianteId)
+        {
+            var estudiante = _estudianteRepository.ObtenerPorId(estudianteId);
+            BitacoraService.Registrar(accion, estudiante is null ? $"Id {estudianteId}" : BitacoraService.DescribirEstudiante(estudiante));
         }
 
         private string GuardarFoto(string rutaOrigen, string nie)

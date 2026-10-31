@@ -16,7 +16,13 @@ namespace AsistenciaQR.Servicios
 
         public void Guardar(TimeSpan horaInicio, int minutosTolerancia)
         {
+            var anterior = ObtenerActual();
             _repository.Guardar(horaInicio, minutosTolerancia);
+
+            bool cambio = anterior.HoraInicio != horaInicio || anterior.MinutosTolerancia != minutosTolerancia;
+            if (cambio) BitacoraService.Registrar(BitacoraService.HorarioCambiado, BitacoraService.DescribirCambios(
+                ("Inicio", anterior.HoraInicio.ToString(@"hh\:mm"), horaInicio.ToString(@"hh\:mm")),
+                ("Tolerancia", $"{anterior.MinutosTolerancia} min", $"{minutosTolerancia} min")));
         }
 
         public bool EsTarde(TimeSpan horaRegistro)

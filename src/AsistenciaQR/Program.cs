@@ -60,6 +60,7 @@ namespace AsistenciaQR
             };
 
             ApplicationConfiguration.Initialize();
+            Servicios.BitacoraService.RegistrarError = RegistrarEnLog;
 
             if (!PrepararPrimerUso()) return;
 

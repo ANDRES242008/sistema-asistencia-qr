@@ -49,6 +49,13 @@ namespace AsistenciaQR.Servicios
             string ruta = Path.Combine(Carpeta, NombreArchivo(ahora, tipo));
             RespaldoRepository.Respaldar(ruta);
 
+            // El automatico lo hace el sistema; el "antes de restaurar"
+            // queda descrito en el registro de la restauracion.
+            if (tipo == TipoRespaldo.Manual)
+            {
+                BitacoraService.Registrar(BitacoraService.RespaldoCreado, Path.GetFileName(ruta));
+            }
+
             return new RespaldoInfo { Ruta = ruta, Fecha = ahora, Tipo = tipo, TamanoBytes = new FileInfo(ruta).Length };
         }
 
@@ -137,12 +144,17 @@ namespace AsistenciaQR.Servicios
                 return ResultadoOperacion.Error(motivoRechazo);
             }
 
-            Crear(TipoRespaldo.AntesDeRestaurar);
+            var previo = Crear(TipoRespaldo.AntesDeRestaurar);
             RespaldoRepository.Restaurar(rutaLocal);
 
             // Un respaldo de una version anterior puede no tener las
-            // columnas nuevas: se agregan aqui mismo.
+            // columnas nuevas (ni la bitacora): se agregan aqui mismo.
             EsquemaRepository.AplicarActualizaciones();
+
+            // Se registra DESPUES de restaurar: la bitacora vieja se
+            // reemplazo con la del respaldo, y este registro debe quedar.
+            BitacoraService.Registrar(BitacoraService.RespaldoRestaurado,
+                $"Se restauro {Path.GetFileName(rutaLocal)}. Los datos anteriores quedaron en {previo.NombreArchivo}");
 
             return ResultadoOperacion.Ok(
                 "Respaldo restaurado. Por si acaso, los datos que habia antes quedaron guardados " +

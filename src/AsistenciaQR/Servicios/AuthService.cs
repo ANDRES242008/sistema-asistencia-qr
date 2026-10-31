@@ -64,6 +64,7 @@ namespace AsistenciaQR.Servicios
                 return ResultadoOperacion.Error("Ya existe un usuario con ese nombre.");
             }
 
+            BitacoraService.Registrar(BitacoraService.UsuarioCreado, $"{usuario.NombreUsuario} ({usuario.NombreCompleto}) · rol {rol}");
             return ResultadoOperacion.Ok("Usuario creado correctamente.");
         }
 
@@ -73,6 +74,8 @@ namespace AsistenciaQR.Servicios
             var usuario = _usuarioRepository.ObtenerPorNombreUsuario(nombreUsuario);
             if (usuario is null || !usuario.Activo)
             {
+                BitacoraService.Registrar(BitacoraService.InicioSesionFallido,
+                    usuario is null ? "El usuario no existe" : "La cuenta esta desactivada", nombreUsuario);
                 return new ResultadoLogin { Mensaje = MensajeCredencialesIncorrectas };
             }
 
@@ -88,6 +91,13 @@ namespace AsistenciaQR.Servicios
                 var (intentos, bloqueadoHasta) = CalcularIntentoFallido(usuario.IntentosFallidos, ahora);
                 _usuarioRepository.ActualizarIntentos(usuario.UsuarioId, intentos, bloqueadoHasta);
 
+                BitacoraService.Registrar(BitacoraService.InicioSesionFallido, "Contrasena incorrecta", usuario.NombreUsuario);
+                if (bloqueadoHasta is { } bloqueo)
+                {
+                    BitacoraService.Registrar(BitacoraService.CuentaBloqueada,
+                        $"{IntentosAntesDeBloquear} intentos fallidos; bloqueada hasta las {bloqueo:HH:mm}", usuario.NombreUsuario);
+                }
+
                 return new ResultadoLogin
                 {
                     Mensaje = bloqueadoHasta is { } hasta ? MensajeBloqueo(hasta) : MensajeCredencialesIncorrectas
@@ -99,6 +109,7 @@ namespace AsistenciaQR.Servicios
                 _usuarioRepository.ActualizarIntentos(usuario.UsuarioId, 0, null);
             }
 
+            BitacoraService.Registrar(BitacoraService.InicioSesion, $"Rol {usuario.Rol}", usuario.NombreUsuario);
             return new ResultadoLogin { Usuario = usuario };
         }
 
@@ -126,6 +137,8 @@ namespace AsistenciaQR.Servicios
             }
 
             _usuarioRepository.ActualizarDatos(usuarioId, nombreCompleto.Trim(), rol);
+            BitacoraService.Registrar(BitacoraService.UsuarioEditado, $"{usuario.NombreUsuario} · " +
+                BitacoraService.DescribirCambios(("Nombre", usuario.NombreCompleto, nombreCompleto.Trim()), ("Rol", usuario.Rol, rol)));
             return ResultadoOperacion.Ok("Cambios guardados correctamente.");
         }
 
@@ -145,12 +158,14 @@ namespace AsistenciaQR.Servicios
             }
 
             _usuarioRepository.CambiarEstado(usuarioId, activo: false);
+            BitacoraService.Registrar(BitacoraService.UsuarioDesactivado, $"{usuario.NombreUsuario} ({usuario.NombreCompleto})");
             return ResultadoOperacion.Ok("Usuario desactivado. Ya no podra iniciar sesion.");
         }
 
         public ResultadoOperacion Reactivar(int usuarioId)
         {
             _usuarioRepository.CambiarEstado(usuarioId, activo: true);
+            BitacoraService.Registrar(BitacoraService.UsuarioReactivado, DescribirUsuario(usuarioId));
             return ResultadoOperacion.Ok("Usuario reactivado.");
         }
 
@@ -167,6 +182,7 @@ namespace AsistenciaQR.Servicios
 
             var (hash, sal) = CrearHash(contrasenaTemporal);
             _usuarioRepository.ActualizarContrasena(usuarioId, hash, sal, debeCambiar: true);
+            BitacoraService.Registrar(BitacoraService.ContrasenaReseteada, $"{DescribirUsuario(usuarioId)} · debera cambiarla al entrar");
             return ResultadoOperacion.Ok("Contrasena reseteada. El usuario debera cambiarla al iniciar sesion.");
         }
 
@@ -196,6 +212,8 @@ namespace AsistenciaQR.Servicios
 
             var (hash, sal) = CrearHash(nueva);
             _usuarioRepository.ActualizarContrasena(usuarioId, hash, sal, debeCambiar: false);
+            BitacoraService.Registrar(BitacoraService.ContrasenaCambiada,
+                contrasenaActual is null ? "Cambio obligatorio tras un reseteo" : "Cambio voluntario", usuario.NombreUsuario);
             return ResultadoOperacion.Ok("Contrasena actualizada correctamente.");
         }
 
@@ -296,6 +314,9 @@ namespace AsistenciaQR.Servicios
 
             return CryptographicOperations.FixedTimeEquals(hashIngresado, hashGuardado);
         }
+
+        private string DescribirUsuario(int usuarioId) =>
+            _usuarioRepository.ObtenerPorId(usuarioId) is { } u ? $"{u.NombreUsuario} ({u.NombreCompleto})" : $"Id {usuarioId}";
 
         private static bool EsContrasenaValida(string contrasena) =>
             !string.IsNullOrEmpty(contrasena) && contrasena.Length >= LongitudMinimaContrasena;

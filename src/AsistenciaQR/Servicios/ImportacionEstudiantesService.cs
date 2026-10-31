@@ -123,6 +123,9 @@ namespace AsistenciaQR.Servicios
                     "No se guardo ningun estudiante; vuelve a cargar el archivo.");
             }
 
+            int omitidas = filas.Count(f => !f.EsValida);
+            BitacoraService.Registrar(BitacoraService.EstudiantesImportados,
+                $"{estudiantes.Count} estudiantes desde Excel" + (omitidas > 0 ? $" ({omitidas} filas con error omitidas)" : string.Empty));
             return ResultadoOperacion.Ok($"Se importaron {estudiantes.Count} estudiantes.");
         }
 

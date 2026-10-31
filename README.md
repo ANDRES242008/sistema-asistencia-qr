@@ -63,6 +63,10 @@ sigue en desarrollo.
 - 🗄️ **Respaldos**: uno automático al día (se conservan los últimos 7),
   respaldo manual, copia a USB y restauración verificada, que antes
   guarda los datos actuales para poder deshacer.
+- 📜 **Bitácora de auditoría**: quién hizo cada acción importante y
+  cuándo (asistencias manuales, bajas, cambios de horario, cuentas,
+  inicios de sesión fallidos, respaldos), con filtros y exportación a
+  Excel. Solo lectura: nadie puede editarla desde el programa.
 - 📊 **Dashboard en vivo**: presentes, tardanzas, faltantes y
   porcentaje de asistencia del día.
 - 📈 **Reportes filtrables**: por fecha, grado o sección, exportables
@@ -161,6 +165,7 @@ superior, por el formato `.slnx`) y una cámara web.
    | 4 | `004_tabla_usuarios.sql` | Crea la tabla de usuarios para el login |
    | 5 | `005_horarios_puntualidad.sql` | Crea la configuración de horario y tolerancia |
    | 6 | `006_seguridad_usuarios.sql` | Bloqueo por intentos fallidos y cambio obligatorio de contraseña |
+   | 7 | `007_bitacora.sql` | Bitácora de auditoría |
 
    Si actualizas desde una versión anterior, no necesitas correr los
    scripts nuevos: la app aplica sola los cambios pendientes al arrancar.
@@ -188,7 +193,7 @@ qué archivo revisar en vez de cerrarse.
 
 | Rol | Acceso |
 |---|---|
-| **Administrador** | Todas las pantallas: Dashboard, Estudiantes, Kiosco, Carnets, Reportes, Excepciones, Configuración, Horarios y Usuarios |
+| **Administrador** | Todas las pantallas: Dashboard, Estudiantes, Kiosco, Carnets, Reportes, Excepciones, Configuración, Horarios, Usuarios y Bitácora |
 | **Docente** | Dashboard, Kiosco (asistencia del día) y Reportes |
 
 Cualquier usuario puede cambiar su propia contraseña desde el menú
@@ -235,6 +240,21 @@ En **Configuración → Respaldos**:
 Para respaldar y restaurar, la cuenta de Windows que usa el programa
 debe ser administradora de SQL Server (lo es quien lo instaló).
 
+### Bitácora
+
+En **Bitácora** (menú lateral, solo Administrador) queda registrado,
+con usuario y hora:
+
+| Tema | Acciones |
+|---|---|
+| Asistencia | Registros manuales (respaldo por NIE y excepciones), con el motivo y si fue tardanza |
+| Estudiantes | Altas, ediciones (qué campo cambió y de qué a qué), bajas, reactivaciones, importaciones y QR regenerados |
+| Cuentas | Inicios de sesión (también los fallidos), bloqueos, cuentas creadas o editadas, reseteos y cambios de contraseña |
+| Sistema | Cambios de horario o tolerancia, respaldos manuales y restauraciones |
+
+Los escaneos de QR no se registran aquí (serían cientos al día); están
+en Reportes. Las contraseñas nunca se guardan en la bitácora.
+
 ## Pruebas
 
 **Pruebas unitarias (xUnit).** Cubren las reglas de negocio sin
@@ -242,7 +262,7 @@ necesitar SQL Server: clasificación de puntualidad, validación de
 estudiantes, hash y verificación de contraseñas, bloqueo por intentos
 fallidos, protección del último Administrador, lectura de la
 configuración, importación desde Excel, distribución de carnets en la
-hoja, retención de respaldos y exportación a Excel. Se ejecutan en cada push con
+hoja, retención de respaldos, textos de la bitácora y exportación a Excel. Se ejecutan en cada push con
 GitHub Actions:
 
 ```bash
@@ -277,7 +297,7 @@ manuales de interfaz están en los checklists de la raíz del repositorio.
 - [x] Gestión de usuarios desde la aplicación, con bloqueo por intentos fallidos
 - [x] Importar estudiantes desde Excel y carnets en lote
 - [x] Respaldos de la base de datos desde la app
-- [ ] Bitácora de auditoría
+- [x] Bitácora de auditoría
 - [ ] Personalización por institución (nombre, logo, colores)
 - [ ] Instalador con configuración automática de la base de datos
 - [ ] Notificaciones a padres de familia por tardanza o ausencia

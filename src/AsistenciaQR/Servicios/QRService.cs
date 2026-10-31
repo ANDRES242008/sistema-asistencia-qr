@@ -30,7 +30,11 @@ namespace AsistenciaQR.Servicios
             var qrActivo = _qrRepository.ObtenerQrActivo(estudiante.EstudianteId);
             if (qrActivo is not null)
             {
+                // Regenerar invalida el carnet anterior: queda en la
+                // bitacora por si alguien reclama que su carnet no sirve.
                 _qrRepository.InactivarQr(qrActivo.QRId);
+                BitacoraService.Registrar(BitacoraService.QrRegenerado,
+                    $"{BitacoraService.DescribirEstudiante(estudiante)} · el carnet anterior ya no funciona");
             }
 
             // El contenido codificado en el QR es un identificador unico

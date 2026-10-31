@@ -7,7 +7,7 @@ namespace AsistenciaQR.UI
     /// <summary>Cada pantalla del sistema, para que la barra sepa cual marcar como activa.</summary>
     public enum SeccionMenu
     {
-        Dashboard, Estudiantes, Kiosco, CarnetsQR, Reportes, Excepciones, Configuracion, Horarios, Usuarios
+        Dashboard, Estudiantes, Kiosco, CarnetsQR, Reportes, Excepciones, Configuracion, Horarios, Usuarios, Bitacora
     }
 
     /// <summary>
@@ -20,7 +20,7 @@ namespace AsistenciaQR.UI
     public class BarraLateral : Panel
     {
         private const int AnchoBase = 240;
-        private const int AlturaItemBase = 56; // antes 46, mas espacio por opcion
+        private const int AlturaItemBase = 50; // 10 opciones para Administrador: deben caber a 720 px de alto
         private const int AlturaEncabezadoBase = 80; // antes 70
         private const int AlturaCerrarSesionBase = 100; // incluye "Cambiar contrasena"
 
@@ -48,6 +48,7 @@ namespace AsistenciaQR.UI
             // inverso al que se ven en pantalla.
             ConstruirCerrarSesion();
 
+            AgregarItem(SeccionMenu.Bitacora, "📜", "Bitacora", seccionActiva, soloAdministrador: true);
             AgregarItem(SeccionMenu.Usuarios, "🔐", "Usuarios", seccionActiva, soloAdministrador: true);
             AgregarItem(SeccionMenu.Horarios, "⏰", "Horarios", seccionActiva, soloAdministrador: true);
             AgregarItem(SeccionMenu.Configuracion, "⚙️", "Configuracion", seccionActiva, soloAdministrador: true);

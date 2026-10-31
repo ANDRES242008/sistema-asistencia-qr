@@ -68,6 +68,14 @@ namespace AsistenciaQR.Servicios
                 };
             }
 
+            // Los escaneos de QR no se registran (serian cientos al dia);
+            // los registros a mano si, porque son los que se reclaman.
+            if (observacion is not null)
+            {
+                BitacoraService.Registrar(BitacoraService.AsistenciaManual,
+                    $"{BitacoraService.DescribirEstudiante(estudiante)} · {estadoPuntualidad} · {observacion}");
+            }
+
             return new ResultadoAsistencia
             {
                 Estado = ResultadoEscaneo.Exitoso,
