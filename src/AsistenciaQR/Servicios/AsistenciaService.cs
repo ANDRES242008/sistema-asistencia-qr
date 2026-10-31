@@ -4,14 +4,7 @@ using AsistenciaQR.Repositorios;
 
 namespace AsistenciaQR.Servicios
 {
-    /// <summary>
-    /// Logica de negocio para registrar asistencia. Se usa desde el
-    /// escaneo automatico de QR, el respaldo manual del Kiosco, y la
-    /// pantalla dedicada de Registro Manual de Excepciones. Los tres
-    /// caminos terminan en el mismo metodo privado, para no duplicar
-    /// las reglas de negocio (incluida la clasificacion de puntualidad)
-    /// en varios lugares.
-    /// </summary>
+    
     public class AsistenciaService
     {
         private readonly QRRepository _qrRepository = new();

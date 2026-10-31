@@ -189,9 +189,42 @@ namespace AsistenciaQR
 
             if (dialogo.ShowDialog(this) != DialogResult.OK) return;
 
-            new ReporteService().ExportarExcel(_datosFiltrados, dialogo.FileName);
+            if (!ExportarSeguro(() => new ReporteService().ExportarExcel(_datosFiltrados, dialogo.FileName))) return;
             MessageBox.Show(this, "Exportado correctamente.", "Listo",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        /// <summary>
+        /// BLINDAJE 4: ejecuta una exportacion protegida. Si el archivo
+        /// esta abierto en Excel o en el lector de PDF, avisa con calma
+        /// en vez de cerrar el programa.
+        /// </summary>
+        private bool ExportarSeguro(Action exportar)
+        {
+            try
+            {
+                exportar();
+                return true;
+            }
+            catch (System.IO.IOException)
+            {
+                MessageBox.Show(this,
+                    "El archivo esta abierto en otro programa (por ejemplo, Excel o el lector de PDF).\n" +
+                    "Cierralo e intenta exportar de nuevo, o guarda con otro nombre.",
+                    "Archivo en uso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                MessageBox.Show(this,
+                    "No hay permiso para guardar en esa carpeta. Elige otra ubicacion, por ejemplo Documentos.",
+                    "Sin permiso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"No se pudo exportar el archivo.\n{ex.Message}",
+                    "Error al exportar", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            return false;
         }
 
         private void BtnImprimir_Click(object? sender, EventArgs e)

@@ -3,9 +3,7 @@ using AsistenciaQR.Modelos;
 
 namespace AsistenciaQR.Repositorios
 {
-    /// <summary>
-    /// Acceso a datos de la tabla Asistencia.
-    /// </summary>
+ 
     public class AsistenciaRepository
     {
         public bool ExisteAsistenciaHoy(int estudianteId)

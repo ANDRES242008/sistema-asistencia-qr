@@ -3,11 +3,7 @@ using AsistenciaQR.Modelos;
 
 namespace AsistenciaQR.Repositorios
 {
-    /// <summary>
-    /// Acceso a datos de la tabla Estudiantes: CRUD completo,
-    /// busqueda con filtros, conteo de activos, y las listas de
-    /// grados y secciones existentes (para los combos de filtro).
-    /// </summary>
+   
     public class EstudianteRepository
     {
         public Estudiante? ObtenerPorNIE(string nie)

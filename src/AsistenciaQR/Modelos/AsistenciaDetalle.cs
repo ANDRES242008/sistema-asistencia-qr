@@ -1,10 +1,6 @@
 namespace AsistenciaQR.Modelos
 {
-    /// <summary>
-    /// Una fila de asistencia combinada con los datos del estudiante.
-    /// EstadoPuntualidad queda vacio para registros anteriores a esta
-    /// funcion (no se reinterpretan retroactivamente).
-    /// </summary>
+    
     public class AsistenciaDetalle
     {
         public string NIE { get; set; } = string.Empty;

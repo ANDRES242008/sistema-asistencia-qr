@@ -3,12 +3,7 @@ using AsistenciaQR.Modelos;
 
 namespace AsistenciaQR.Repositorios
 {
-    /// <summary>
-    /// En vez de guardar una sola fila que se sobreescribe, cada
-    /// cambio de horario inserta una fila nueva. Esto da un pequeno
-    /// historial de cambios "gratis", y ObtenerActual siempre toma
-    /// la mas reciente.
-    /// </summary>
+   
     public class ConfiguracionHorarioRepository
     {
         public ConfiguracionHorario ObtenerActual()

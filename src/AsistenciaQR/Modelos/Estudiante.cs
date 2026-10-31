@@ -1,9 +1,6 @@
 namespace AsistenciaQR.Modelos
 {
-    /// <summary>
-    /// Representa un estudiante registrado en el sistema.
-    /// Esta clase no contiene logica, solo los datos (molde de la tabla Estudiantes).
-    /// </summary>
+  
     public class Estudiante
     {
         public int EstudianteId { get; set; }
