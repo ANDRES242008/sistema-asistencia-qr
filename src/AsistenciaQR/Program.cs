@@ -7,6 +7,14 @@ namespace AsistenciaQR
     {
         // Nombre unico del candado. Si ya existe, el programa ya esta abierto.
         private const string NombreMutex = "AsistenciaQR_InstanciaUnica";
+        private const string ArgumentoReinicio = "--reinicio";
+
+        /// <summary>Cierra el programa y lo vuelve a abrir desde el login.</summary>
+        public static void Reiniciar()
+        {
+            System.Diagnostics.Process.Start(Application.ExecutablePath, ArgumentoReinicio);
+            Application.Exit();
+        }
 
         [STAThread]
         static void Main(string[] args)
@@ -22,6 +30,15 @@ namespace AsistenciaQR
             // veces (doble clic por nervios), la segunda copia no arranca,
             // asi no pelea por la camara con la primera.
             using var mutex = new Mutex(true, NombreMutex, out bool esPrimeraInstancia);
+
+            // Al reiniciar (por ejemplo, despues de restaurar un
+            // respaldo) la copia anterior tarda un momento en cerrarse.
+            if (!esPrimeraInstancia && args.Contains(ArgumentoReinicio))
+            {
+                try { esPrimeraInstancia = mutex.WaitOne(TimeSpan.FromSeconds(10)); }
+                catch (AbandonedMutexException) { esPrimeraInstancia = true; }
+            }
+
             if (!esPrimeraInstancia)
             {
                 MessageBox.Show("AsistenciaQR ya esta abierto.", "AsistenciaQR",
@@ -45,6 +62,9 @@ namespace AsistenciaQR
             ApplicationConfiguration.Initialize();
 
             if (!PrepararPrimerUso()) return;
+
+            // Respaldo del dia en segundo plano, mientras se inicia sesion.
+            Task.Run(() => Servicios.RespaldoService.RespaldoAutomaticoSiCorresponde(RegistrarEnLog));
 
             using var login = new FrmLogin();
             if (login.ShowDialog() == DialogResult.OK)

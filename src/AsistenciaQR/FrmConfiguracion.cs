@@ -59,6 +59,7 @@ namespace AsistenciaQR
         private TarjetaBlanca _tarjetaSql = null!;
         private Label _lblTituloSql = null!;
         private Button _btnProbarSql = null!;
+        private Button _btnRespaldos = null!;
         private Panel _pnlResultadoSql = null!;
         private Label _lblResultadoSql = null!;
 
@@ -382,9 +383,16 @@ namespace AsistenciaQR
             _btnProbarSql = CrearBotonPildora("🖥️  Probar Conexion", Colores.AzulMarino);
             _btnProbarSql.Click += BtnProbarSql_Click;
 
+            _btnRespaldos = CrearBotonPildora("🗄️  Respaldos", Colores.VerdeEsmeralda);
+            _btnRespaldos.Click += (_, _) =>
+            {
+                using var respaldos = new FrmRespaldos();
+                respaldos.ShowDialog(this);
+            };
+
             (_pnlResultadoSql, _lblResultadoSql) = CrearBanner("○  Aun no probada");
 
-            _tarjetaSql.Controls.AddRange(new Control[] { _lblTituloSql, _btnProbarSql, _pnlResultadoSql });
+            _tarjetaSql.Controls.AddRange(new Control[] { _lblTituloSql, _btnProbarSql, _btnRespaldos, _pnlResultadoSql });
         }
 
         private void ConstruirBarraAcciones()
@@ -726,6 +734,11 @@ namespace AsistenciaQR
             _btnProbarSql.Size = new Size((int)(230 * _escala), (int)(38 * _escala));
             _btnProbarSql.Location = new Point(margen, y);
             AplicarRegionRedondeada(_btnProbarSql, _btnProbarSql.Height / 2);
+
+            _btnRespaldos.Font = new Font("Segoe UI Emoji", 9.5f * _escala, FontStyle.Bold);
+            _btnRespaldos.Size = new Size((int)(170 * _escala), _btnProbarSql.Height);
+            _btnRespaldos.Location = new Point(_btnProbarSql.Right + (int)(12 * _escala), y);
+            AplicarRegionRedondeada(_btnRespaldos, _btnRespaldos.Height / 2);
 
             y = _btnProbarSql.Bottom + (int)(14 * _escala);
 

@@ -60,6 +60,9 @@ sigue en desarrollo.
 - 🖨️ **Carnets en lote**: un solo PDF tamaño carta con 9 carnets por
   hoja, a tamaño real y con guía de corte. Genera el QR a quien no lo
   tiene y respeta los ya entregados.
+- 🗄️ **Respaldos**: uno automático al día (se conservan los últimos 7),
+  respaldo manual, copia a USB y restauración verificada, que antes
+  guarda los datos actuales para poder deshacer.
 - 📊 **Dashboard en vivo**: presentes, tardanzas, faltantes y
   porcentaje de asistencia del día.
 - 📈 **Reportes filtrables**: por fecha, grado o sección, exportables
@@ -213,6 +216,25 @@ intentos fallidos, el Administrador la resetea de la misma forma.
 
 ![Hoja de carnets generada en lote](docs/img/carnets_lote.png)
 
+### Respaldos
+
+En **Configuración → Respaldos**:
+
+- Cada día, al abrir el programa, se crea un respaldo automático en
+  `C:\ProgramData\AsistenciaQR\Respaldos`. Se conservan los 7 más
+  recientes; los manuales nunca se borran solos.
+- **Copiar a USB** guarda una copia fuera de la computadora. Es
+  importante: si el disco se daña, los respaldos guardados en él
+  también se pierden.
+- **Restaurar** acepta un respaldo de la lista o un `.bak` traído de
+  otra parte. Antes de reemplazar nada se verifica el archivo, se
+  comprueba que sea de AsistenciaQR y se respaldan los datos actuales.
+  Funciona aunque el respaldo venga de otra computadora o de una
+  versión anterior del programa.
+
+Para respaldar y restaurar, la cuenta de Windows que usa el programa
+debe ser administradora de SQL Server (lo es quien lo instaló).
+
 ## Pruebas
 
 **Pruebas unitarias (xUnit).** Cubren las reglas de negocio sin
@@ -220,7 +242,7 @@ necesitar SQL Server: clasificación de puntualidad, validación de
 estudiantes, hash y verificación de contraseñas, bloqueo por intentos
 fallidos, protección del último Administrador, lectura de la
 configuración, importación desde Excel, distribución de carnets en la
-hoja y exportación a Excel. Se ejecutan en cada push con
+hoja, retención de respaldos y exportación a Excel. Se ejecutan en cada push con
 GitHub Actions:
 
 ```bash
@@ -254,7 +276,7 @@ manuales de interfaz están en los checklists de la raíz del repositorio.
 - [x] Ejecutable listo para descargar en Releases (se genera solo al crear un tag `v*`)
 - [x] Gestión de usuarios desde la aplicación, con bloqueo por intentos fallidos
 - [x] Importar estudiantes desde Excel y carnets en lote
-- [ ] Respaldos de la base de datos desde la app
+- [x] Respaldos de la base de datos desde la app
 - [ ] Bitácora de auditoría
 - [ ] Personalización por institución (nombre, logo, colores)
 - [ ] Instalador con configuración automática de la base de datos
