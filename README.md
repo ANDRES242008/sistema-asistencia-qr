@@ -134,13 +134,8 @@ _(Ver carpeta `docs/` del repositorio.)_
 
 Proyecto de Feria de Programación — [Colegio Salarrue].
 
-| Integrante | 
-|Andrés Alexander Marroquín Rodríguez| 
-| Antony Leonel Rosa | 
-| Mathew Pineda Morales | 
-| Aarón Levi Vásquez Moran |
-| Alexa Ciefuegos Calderon|  
+Creador 
+Andrés Alexander Marroquín Rodríguez
 
----
 
 <sub>Los datos de estudiantes usados en pruebas son ficticios.</sub>
