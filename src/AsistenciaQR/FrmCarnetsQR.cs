@@ -25,6 +25,7 @@ namespace AsistenciaQR
 
         private Panel _panelContenido = null!;
         private CampoTexto _campoBuscar = null!;
+        private Button _btnCarnetsLista = null!;
         private DataGridView _dgvEstudiantes = null!;
         private BotonRegresar _btnRegresar = null!;
 
@@ -245,6 +246,64 @@ namespace AsistenciaQR
             Process.Start(new ProcessStartInfo(rutaImagen) { UseShellExecute = true });
         }
 
+        /// <summary>
+        /// Genera en un solo PDF los carnets de todos los estudiantes
+        /// que se ven en la lista (respeta la busqueda). Corre en
+        /// segundo plano para que la ventana no se congele.
+        /// </summary>
+        private async void BtnCarnetsLista_Click(object? sender, EventArgs e)
+        {
+            var estudiantes = (_dgvEstudiantes.DataSource as List<Estudiante>) ?? new List<Estudiante>();
+            if (estudiantes.Count == 0)
+            {
+                MessageBox.Show(this, "No hay estudiantes en la lista.", "Sin estudiantes",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var confirmar = MessageBox.Show(this,
+                $"Se generaran {estudiantes.Count} carnets en un PDF (9 por hoja carta).\n" +
+                "Quien no tenga codigo QR recibira uno nuevo; los QR existentes no cambian.\n\nContinuar?",
+                "Carnets de la lista", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirmar != DialogResult.Yes) return;
+
+            using var dialogo = new SaveFileDialog
+            {
+                Filter = "PDF (*.pdf)|*.pdf",
+                FileName = $"carnets_{DateTime.Now:yyyy-MM-dd}.pdf"
+            };
+            if (dialogo.ShowDialog(this) != DialogResult.OK) return;
+
+            string textoOriginal = _btnCarnetsLista.Text;
+            _panelContenido.Enabled = false;
+            UseWaitCursor = true;
+
+            var progreso = new Progress<int>(listos =>
+                _btnCarnetsLista.Text = $"Generando {listos} de {estudiantes.Count}...");
+
+            try
+            {
+                int qrNuevos = await Task.Run(() => new CarnetsEnLoteService().Generar(estudiantes, dialogo.FileName, progreso));
+
+                MessageBox.Show(this,
+                    $"Listo: {estudiantes.Count} carnets." + (qrNuevos > 0 ? $"\nSe generaron {qrNuevos} codigos QR nuevos." : string.Empty),
+                    "Carnets generados", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Process.Start(new ProcessStartInfo(dialogo.FileName) { UseShellExecute = true });
+            }
+            catch (IOException)
+            {
+                MessageBox.Show(this, "El PDF esta abierto en otro programa. Cierralo o guarda con otro nombre.",
+                    "Archivo en uso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            finally
+            {
+                _btnCarnetsLista.Text = textoOriginal;
+                _panelContenido.Enabled = true;
+                UseWaitCursor = false;
+                if (_estudianteSeleccionado is not null) MostrarDetalle(_estudianteSeleccionado);
+            }
+        }
+
         private void BtnRegresar_Click(object? sender, EventArgs e)
         {
             var dashboard = Application.OpenForms.OfType<FrmDashboard>().FirstOrDefault();
@@ -307,11 +366,21 @@ namespace AsistenciaQR
             _btnRegresar = new BotonRegresar();
             _btnRegresar.Click += BtnRegresar_Click;
 
+            _btnCarnetsLista = new Button
+            {
+                Text = "🖨️  Carnets de la lista (PDF)",
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Colores.BlancoPuro,
+                ForeColor = Colores.GrisOscuro
+            };
+            _btnCarnetsLista.FlatAppearance.BorderColor = Color.FromArgb(219, 224, 230);
+            _btnCarnetsLista.Click += BtnCarnetsLista_Click;
+
             ConstruirTarjetaDetalle();
 
             _panelContenido.Controls.AddRange(new Control[]
             {
-                _campoBuscar, _dgvEstudiantes, _btnRegresar, _tarjetaDetalle
+                _campoBuscar, _btnCarnetsLista, _dgvEstudiantes, _btnRegresar, _tarjetaDetalle
             });
 
             Controls.Add(_panelContenido);
@@ -411,6 +480,10 @@ namespace AsistenciaQR
             _campoBuscar.Width = (int)(320 * _escala);
             _campoBuscar.Location = new Point(x0, y0);
             _campoBuscar.EscalarA(_escala);
+
+            _btnCarnetsLista.Font = new Font("Segoe UI Emoji", 9.5f * _escala);
+            _btnCarnetsLista.Size = new Size((int)(250 * _escala), _campoBuscar.Height);
+            _btnCarnetsLista.Location = new Point(_campoBuscar.Right + (int)(14 * _escala), y0);
 
             int y1 = _campoBuscar.Bottom + (int)(18 * _escala);
 

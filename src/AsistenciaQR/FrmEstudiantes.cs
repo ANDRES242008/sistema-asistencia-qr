@@ -30,6 +30,7 @@ namespace AsistenciaQR
         private CampoTexto _campoBuscar = null!;
         private ComboBox _cmbSeccionFiltro = null!;
         private CheckBox _chkMostrarInactivos = null!;
+        private Button _btnImportarExcel = null!;
 
         private DataGridView _dgvEstudiantes = null!;
         private Panel _panelPaginacion = null!;
@@ -322,6 +323,16 @@ namespace AsistenciaQR
             CargarLista();
         }
 
+        private void BtnImportarExcel_Click(object? sender, EventArgs e)
+        {
+            using var importar = new FrmImportarEstudiantes();
+            if (importar.ShowDialog(this) != DialogResult.OK) return;
+
+            LimpiarFormulario();
+            CargarSecciones();
+            CargarLista();
+        }
+
         private void BtnRegresar_Click(object? sender, EventArgs e)
         {
             var dashboard = Application.OpenForms.OfType<FrmDashboard>().FirstOrDefault();
@@ -380,6 +391,9 @@ namespace AsistenciaQR
             };
             _chkMostrarInactivos.CheckedChanged += (_, _) => CargarLista();
 
+            _btnImportarExcel = CrearBotonSecundario("📥  Importar desde Excel");
+            _btnImportarExcel.Click += BtnImportarExcel_Click;
+
             _dgvEstudiantes = new DataGridView
             {
                 ReadOnly = true,
@@ -402,7 +416,7 @@ namespace AsistenciaQR
             _panelContenido.Controls.AddRange(new Control[]
             {
                 _btnRegresar,
-                _campoBuscar, _cmbSeccionFiltro, _chkMostrarInactivos,
+                _campoBuscar, _cmbSeccionFiltro, _chkMostrarInactivos, _btnImportarExcel,
                 _dgvEstudiantes, _panelPaginacion, _tarjetaInfo
             });
 
@@ -548,6 +562,10 @@ namespace AsistenciaQR
 
             _chkMostrarInactivos.Font = new Font("Segoe UI", 9.5f * _escala);
             _chkMostrarInactivos.Location = new Point(_cmbSeccionFiltro.Right + (int)(16 * _escala), y0 + (int)(12 * _escala));
+
+            _btnImportarExcel.Font = new Font("Segoe UI Emoji", 9.5f * _escala);
+            _btnImportarExcel.Size = new Size((int)(210 * _escala), _campoBuscar.Height);
+            _btnImportarExcel.Location = new Point(x0 + anchoDisponible - _btnImportarExcel.Width, y0);
 
             int y1 = _campoBuscar.Bottom + (int)(20 * _escala);
 

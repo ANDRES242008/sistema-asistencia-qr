@@ -57,6 +57,17 @@ namespace AsistenciaQR.Servicios
             return nuevoQr;
         }
 
+        /// <summary>
+        /// Vuelve a dibujar la imagen de un codigo que ya existe (sin
+        /// cambiarlo) y devuelve la ruta. No toca la base de datos.
+        /// </summary>
+        public string DibujarImagen(string codigoQr)
+        {
+            string ruta = Path.Combine(_carpetaQR, $"{codigoQr}.png");
+            GenerarImagenQr(codigoQr, ruta);
+            return ruta;
+        }
+
         private static void GenerarImagenQr(string contenido, string rutaDestino)
         {
             using var generador = new QRCodeGenerator();

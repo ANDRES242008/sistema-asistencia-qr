@@ -53,6 +53,13 @@ sigue en desarrollo.
   observación, para casos que deben quedar justificados.
 - 🪪 **Carnets con QR propios**: se generan e imprimen desde el
   sistema. El código es un identificador aleatorio, no el NIE.
+- 📥 **Importación desde Excel**: carga a todo el colegio de una vez con
+  la plantilla incluida. Una vista previa marca en rojo las filas con
+  errores (NIE inválido, repetido o ya registrado) y solo se guardan
+  las correctas, todas juntas en una transacción.
+- 🖨️ **Carnets en lote**: un solo PDF tamaño carta con 9 carnets por
+  hoja, a tamaño real y con guía de corte. Genera el QR a quien no lo
+  tiene y respeta los ya entregados.
 - 📊 **Dashboard en vivo**: presentes, tardanzas, faltantes y
   porcentaje de asistencia del día.
 - 📈 **Reportes filtrables**: por fecha, grado o sección, exportables
@@ -192,13 +199,28 @@ muestra una sola vez; el docente debe cambiarla la primera vez que
 inicia sesión. Si alguien olvida su contraseña o bloquea su cuenta por
 intentos fallidos, el Administrador la resetea de la misma forma.
 
+### Cargar a todo el colegio
+
+1. En **Estudiantes → Importar desde Excel**, descarga la plantilla y
+   llénala (o pega ahí la lista que ya tiene el colegio).
+2. Elige el archivo: la vista previa muestra en verde las filas listas y
+   en rojo las que tienen errores, con el motivo.
+3. Presiona **Importar**. Las filas con error se pueden corregir en
+   Excel e importar después; las ya cargadas se detectan y no se duplican.
+4. En **Carnets y QR → Carnets de la lista (PDF)** se generan todos los
+   carnets en un PDF listo para imprimir. Si buscas un grado o nombre
+   antes, solo salen los de la lista filtrada.
+
+![Hoja de carnets generada en lote](docs/img/carnets_lote.png)
+
 ## Pruebas
 
 **Pruebas unitarias (xUnit).** Cubren las reglas de negocio sin
 necesitar SQL Server: clasificación de puntualidad, validación de
 estudiantes, hash y verificación de contraseñas, bloqueo por intentos
 fallidos, protección del último Administrador, lectura de la
-configuración y exportación a Excel. Se ejecutan en cada push con
+configuración, importación desde Excel, distribución de carnets en la
+hoja y exportación a Excel. Se ejecutan en cada push con
 GitHub Actions:
 
 ```bash
@@ -231,7 +253,7 @@ manuales de interfaz están en los checklists de la raíz del repositorio.
 - [x] Proyecto de pruebas unitarias e integración continua (GitHub Actions)
 - [x] Ejecutable listo para descargar en Releases (se genera solo al crear un tag `v*`)
 - [x] Gestión de usuarios desde la aplicación, con bloqueo por intentos fallidos
-- [ ] Importar estudiantes desde Excel y carnets en lote
+- [x] Importar estudiantes desde Excel y carnets en lote
 - [ ] Respaldos de la base de datos desde la app
 - [ ] Bitácora de auditoría
 - [ ] Personalización por institución (nombre, logo, colores)

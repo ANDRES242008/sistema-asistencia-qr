@@ -60,6 +60,61 @@ namespace AsistenciaQR.Repositorios
             return (int)comando.ExecuteScalar();
         }
 
+        /// <summary>
+        /// Inserta todos los estudiantes en una sola transaccion: si
+        /// uno falla (por ejemplo, un NIE que otra persona registro
+        /// mientras tanto), no se guarda ninguno.
+        /// </summary>
+        public void InsertarVarios(IReadOnlyList<Estudiante> estudiantes)
+        {
+            using var conexion = ConexionSQL.ObtenerConexion();
+            conexion.Open();
+            using var transaccion = conexion.BeginTransaction();
+
+            const string sql = @"
+                insert into Estudiantes (NIE, NombreCompleto, Grado, Seccion, Correo)
+                values (@NIE, @NombreCompleto, @Grado, @Seccion, @Correo);
+                select cast(scope_identity() as int);";
+
+            try
+            {
+                foreach (var estudiante in estudiantes)
+                {
+                    using var comando = new SqlCommand(sql, conexion, transaccion);
+                    comando.Parameters.AddWithValue("@NIE", estudiante.NIE);
+                    comando.Parameters.AddWithValue("@NombreCompleto", estudiante.NombreCompleto);
+                    comando.Parameters.AddWithValue("@Grado", estudiante.Grado);
+                    comando.Parameters.AddWithValue("@Seccion", estudiante.Seccion);
+                    comando.Parameters.AddWithValue("@Correo", (object?)estudiante.Correo ?? DBNull.Value);
+
+                    estudiante.EstudianteId = (int)comando.ExecuteScalar();
+                }
+
+                transaccion.Commit();
+            }
+            catch
+            {
+                transaccion.Rollback();
+                foreach (var estudiante in estudiantes) estudiante.EstudianteId = 0;
+                throw;
+            }
+        }
+
+        public HashSet<string> ObtenerTodosLosNie()
+        {
+            using var conexion = ConexionSQL.ObtenerConexion();
+            const string sql = "select NIE from Estudiantes;";
+
+            using var comando = new SqlCommand(sql, conexion);
+
+            conexion.Open();
+            using var lector = comando.ExecuteReader();
+
+            var nies = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            while (lector.Read()) nies.Add(lector.GetString(0));
+            return nies;
+        }
+
         public void Actualizar(Estudiante estudiante)
         {
             using var conexion = ConexionSQL.ObtenerConexion();

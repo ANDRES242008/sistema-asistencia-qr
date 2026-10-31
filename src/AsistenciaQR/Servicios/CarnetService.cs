@@ -117,6 +117,75 @@ namespace AsistenciaQR.Servicios
             return rutaPdf;
         }
 
+        public const int CarnetsPorHoja = ColumnasHoja * FilasHoja;
+        private const int ColumnasHoja = 3;
+        private const int FilasHoja = 3;
+        private const double EspacioEntreCarnets = 9; // puntos (1/8 de pulgada)
+
+        /// <summary>
+        /// Une varios carnets en un PDF tamano carta, 9 por hoja y a
+        /// su tamano real (CR-80), con una guia gris tenue para
+        /// recortarlos.
+        /// </summary>
+        public static void ExportarHojaDeCarnets(IReadOnlyList<string> rutasImagenes, string rutaPdf)
+        {
+            using var documento = new PdfDocument();
+            documento.Info.Title = "Carnets AsistenciaQR";
+
+            XGraphics? graficos = null;
+            var guia = new XPen(XColor.FromArgb(200, 200, 200), 0.4);
+
+            try
+            {
+                for (int i = 0; i < rutasImagenes.Count; i++)
+                {
+                    var (_, x, y) = PosicionEnHoja(i);
+                    if (i % CarnetsPorHoja == 0)
+                    {
+                        graficos?.Dispose();
+                        var pagina = documento.AddPage();
+                        pagina.Width = XUnit.FromInch(8.5);
+                        pagina.Height = XUnit.FromInch(11);
+                        graficos = XGraphics.FromPdfPage(pagina);
+                    }
+
+                    using var imagen = XImage.FromFile(rutasImagenes[i]);
+                    graficos!.DrawImage(imagen, x, y, AnchoCarnetPuntos, AltoCarnetPuntos);
+                    graficos.DrawRectangle(guia, x, y, AnchoCarnetPuntos, AltoCarnetPuntos);
+                }
+            }
+            finally
+            {
+                graficos?.Dispose();
+            }
+
+            documento.Save(rutaPdf);
+        }
+
+        private const double AnchoCarnetPuntos = AnchoCarnet * 72.0 / 300.0;
+        private const double AltoCarnetPuntos = AltoCarnet * 72.0 / 300.0;
+
+        /// <summary>
+        /// Pagina (desde 0) y esquina superior izquierda, en puntos, del
+        /// carnet numero indice. La cuadricula queda centrada en la hoja.
+        /// </summary>
+        internal static (int Pagina, double X, double Y) PosicionEnHoja(int indice)
+        {
+            const double anchoHoja = 8.5 * 72, altoHoja = 11 * 72;
+            double anchoBloque = ColumnasHoja * AnchoCarnetPuntos + (ColumnasHoja - 1) * EspacioEntreCarnets;
+            double altoBloque = FilasHoja * AltoCarnetPuntos + (FilasHoja - 1) * EspacioEntreCarnets;
+            double margenX = (anchoHoja - anchoBloque) / 2;
+            double margenY = (altoHoja - altoBloque) / 2;
+
+            int enPagina = indice % CarnetsPorHoja;
+            int columna = enPagina % ColumnasHoja;
+            int fila = enPagina / ColumnasHoja;
+
+            return (indice / CarnetsPorHoja,
+                margenX + columna * (AnchoCarnetPuntos + EspacioEntreCarnets),
+                margenY + fila * (AltoCarnetPuntos + EspacioEntreCarnets));
+        }
+
         private static GraphicsPath ObtenerRutaTarjetaRedondeada()
         {
             const int radio = 28;
