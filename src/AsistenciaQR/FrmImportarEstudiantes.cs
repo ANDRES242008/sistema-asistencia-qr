@@ -80,7 +80,7 @@ namespace AsistenciaQR
             {
                 var e = fila.Estudiante;
                 int indice = _dgvFilas.Rows.Add(fila.NumeroFila, e.NIE, e.NombreCompleto, e.Grado, e.Seccion,
-                    e.Correo ?? string.Empty, fila.EsValida ? "✔ Lista" : fila.Error);
+                    e.Correo ?? string.Empty, e.EncargadoCorreo ?? string.Empty, fila.EsValida ? "✔ Lista" : fila.Error);
 
                 var estilo = _dgvFilas.Rows[indice].DefaultCellStyle;
                 estilo.BackColor = fila.EsValida ? Color.FromArgb(236, 253, 245) : Color.FromArgb(254, 242, 242);
@@ -200,6 +200,7 @@ namespace AsistenciaQR
             _dgvFilas.Columns.Add("Grado", "Grado");
             _dgvFilas.Columns.Add("Seccion", "Seccion");
             _dgvFilas.Columns.Add("Correo", "Correo");
+            _dgvFilas.Columns.Add("CorreoEncargado", "Correo del encargado");
             _dgvFilas.Columns.Add("Estado", "Estado");
             _dgvFilas.Columns["Fila"]!.FillWeight = 35;
             _dgvFilas.Columns["Grado"]!.FillWeight = 50;

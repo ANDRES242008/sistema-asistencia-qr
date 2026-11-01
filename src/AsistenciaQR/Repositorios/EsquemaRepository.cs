@@ -48,6 +48,44 @@ namespace AsistenciaQR.Repositorios
                     ColorPrincipal char(7) null,
                     FechaActualizacion datetime not null
                         constraint df_ConfiguracionInstitucion_Fecha default (getdate())
+                );",
+
+            // 009_avisos_padres.sql
+            @"if col_length('Estudiantes', 'EncargadoNombre') is null
+                alter table Estudiantes add EncargadoNombre nvarchar(150) null;",
+            @"if col_length('Estudiantes', 'EncargadoCorreo') is null
+                alter table Estudiantes add EncargadoCorreo varchar(150) null;",
+            @"if object_id('ConfiguracionCorreo', 'U') is null
+                create table ConfiguracionCorreo (
+                    ConfiguracionCorreoId int not null
+                        constraint pk_ConfiguracionCorreo primary key
+                        constraint ck_ConfiguracionCorreo_UnaFila check (ConfiguracionCorreoId = 1),
+                    Activo bit not null,
+                    HoraEnvio time not null,
+                    AvisarTardanzas bit not null,
+                    AvisarAusencias bit not null,
+                    ServidorSmtp varchar(150) not null,
+                    Puerto int not null,
+                    UsarSsl bit not null,
+                    Usuario varchar(150) not null,
+                    ContrasenaCifrada varbinary(max) null,
+                    EquipoQueEnvia nvarchar(100) not null,
+                    UltimoEnvioAutomatico date null
+                );",
+            @"if object_id('NotificacionesEnviadas', 'U') is null
+                create table NotificacionesEnviadas (
+                    NotificacionId int identity(1,1) not null
+                        constraint pk_NotificacionesEnviadas primary key,
+                    Fecha date not null,
+                    EstudianteId int not null
+                        constraint fk_Notificaciones_Estudiantes references Estudiantes(EstudianteId) on delete cascade,
+                    Tipo varchar(20) not null,
+                    Correo varchar(150) not null,
+                    Enviado bit not null,
+                    Error nvarchar(400) null,
+                    FechaIntento datetime not null
+                        constraint df_Notificaciones_FechaIntento default (getdate()),
+                    constraint uq_Notificaciones_Estudiante_Fecha unique (EstudianteId, Fecha)
                 );"
         };
 

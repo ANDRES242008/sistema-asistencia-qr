@@ -10,7 +10,8 @@ namespace AsistenciaQR.Repositorios
         {
             using var conexion = ConexionSQL.ObtenerConexion();
             const string sql = @"
-                select EstudianteId, NIE, NombreCompleto, Grado, Seccion, Correo, FotoRuta, Activo, FechaRegistro
+                select EstudianteId, NIE, NombreCompleto, Grado, Seccion, Correo, FotoRuta, Activo, FechaRegistro,
+                       EncargadoNombre, EncargadoCorreo
                 from Estudiantes
                 where NIE = @NIE;";
 
@@ -27,7 +28,8 @@ namespace AsistenciaQR.Repositorios
         {
             using var conexion = ConexionSQL.ObtenerConexion();
             const string sql = @"
-                select EstudianteId, NIE, NombreCompleto, Grado, Seccion, Correo, FotoRuta, Activo, FechaRegistro
+                select EstudianteId, NIE, NombreCompleto, Grado, Seccion, Correo, FotoRuta, Activo, FechaRegistro,
+                       EncargadoNombre, EncargadoCorreo
                 from Estudiantes
                 where EstudianteId = @EstudianteId;";
 
@@ -44,8 +46,8 @@ namespace AsistenciaQR.Repositorios
         {
             using var conexion = ConexionSQL.ObtenerConexion();
             const string sql = @"
-                insert into Estudiantes (NIE, NombreCompleto, Grado, Seccion, Correo, FotoRuta)
-                values (@NIE, @NombreCompleto, @Grado, @Seccion, @Correo, @FotoRuta);
+                insert into Estudiantes (NIE, NombreCompleto, Grado, Seccion, Correo, FotoRuta, EncargadoNombre, EncargadoCorreo)
+                values (@NIE, @NombreCompleto, @Grado, @Seccion, @Correo, @FotoRuta, @EncargadoNombre, @EncargadoCorreo);
                 select cast(scope_identity() as int);";
 
             using var comando = new SqlCommand(sql, conexion);
@@ -55,6 +57,7 @@ namespace AsistenciaQR.Repositorios
             comando.Parameters.AddWithValue("@Seccion", estudiante.Seccion);
             comando.Parameters.AddWithValue("@Correo", (object?)estudiante.Correo ?? DBNull.Value);
             comando.Parameters.AddWithValue("@FotoRuta", (object?)estudiante.FotoRuta ?? DBNull.Value);
+            AgregarEncargado(comando, estudiante);
 
             conexion.Open();
             return (int)comando.ExecuteScalar();
@@ -72,8 +75,8 @@ namespace AsistenciaQR.Repositorios
             using var transaccion = conexion.BeginTransaction();
 
             const string sql = @"
-                insert into Estudiantes (NIE, NombreCompleto, Grado, Seccion, Correo)
-                values (@NIE, @NombreCompleto, @Grado, @Seccion, @Correo);
+                insert into Estudiantes (NIE, NombreCompleto, Grado, Seccion, Correo, EncargadoNombre, EncargadoCorreo)
+                values (@NIE, @NombreCompleto, @Grado, @Seccion, @Correo, @EncargadoNombre, @EncargadoCorreo);
                 select cast(scope_identity() as int);";
 
             try
@@ -86,6 +89,7 @@ namespace AsistenciaQR.Repositorios
                     comando.Parameters.AddWithValue("@Grado", estudiante.Grado);
                     comando.Parameters.AddWithValue("@Seccion", estudiante.Seccion);
                     comando.Parameters.AddWithValue("@Correo", (object?)estudiante.Correo ?? DBNull.Value);
+                    AgregarEncargado(comando, estudiante);
 
                     estudiante.EstudianteId = (int)comando.ExecuteScalar();
                 }
@@ -124,7 +128,9 @@ namespace AsistenciaQR.Repositorios
                     Grado = @Grado,
                     Seccion = @Seccion,
                     Correo = @Correo,
-                    FotoRuta = @FotoRuta
+                    FotoRuta = @FotoRuta,
+                    EncargadoNombre = @EncargadoNombre,
+                    EncargadoCorreo = @EncargadoCorreo
                 where EstudianteId = @EstudianteId;";
 
             using var comando = new SqlCommand(sql, conexion);
@@ -134,6 +140,7 @@ namespace AsistenciaQR.Repositorios
             comando.Parameters.AddWithValue("@Correo", (object?)estudiante.Correo ?? DBNull.Value);
             comando.Parameters.AddWithValue("@FotoRuta", (object?)estudiante.FotoRuta ?? DBNull.Value);
             comando.Parameters.AddWithValue("@EstudianteId", estudiante.EstudianteId);
+            AgregarEncargado(comando, estudiante);
 
             conexion.Open();
             comando.ExecuteNonQuery();
@@ -149,7 +156,8 @@ namespace AsistenciaQR.Repositorios
 
             using var conexion = ConexionSQL.ObtenerConexion();
             const string sql = @"
-                select EstudianteId, NIE, NombreCompleto, Grado, Seccion, Correo, FotoRuta, Activo, FechaRegistro
+                select EstudianteId, NIE, NombreCompleto, Grado, Seccion, Correo, FotoRuta, Activo, FechaRegistro,
+                       EncargadoNombre, EncargadoCorreo
                 from Estudiantes
                 where (@Busqueda is null or NombreCompleto like '%' + @Busqueda + '%' or NIE like '%' + @Busqueda + '%')
                   and (@Seccion is null or Seccion = @Seccion)
@@ -239,6 +247,12 @@ namespace AsistenciaQR.Repositorios
             comando.ExecuteNonQuery();
         }
 
+        private static void AgregarEncargado(SqlCommand comando, Estudiante estudiante)
+        {
+            comando.Parameters.AddWithValue("@EncargadoNombre", (object?)estudiante.EncargadoNombre ?? DBNull.Value);
+            comando.Parameters.AddWithValue("@EncargadoCorreo", (object?)estudiante.EncargadoCorreo ?? DBNull.Value);
+        }
+
         private static Estudiante LeerEstudiante(SqlDataReader lector)
         {
             return new Estudiante
@@ -251,7 +265,9 @@ namespace AsistenciaQR.Repositorios
                 Correo = lector.IsDBNull(5) ? null : lector.GetString(5),
                 FotoRuta = lector.IsDBNull(6) ? null : lector.GetString(6),
                 Activo = lector.GetBoolean(7),
-                FechaRegistro = lector.GetDateTime(8)
+                FechaRegistro = lector.GetDateTime(8),
+                EncargadoNombre = lector.IsDBNull(9) ? null : lector.GetString(9),
+                EncargadoCorreo = lector.IsDBNull(10) ? null : lector.GetString(10)
             };
         }
     }

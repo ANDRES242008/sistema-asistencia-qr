@@ -33,6 +33,8 @@ namespace AsistenciaQR.Servicios
         public const string AsistenciaManual = "Asistencia manual";
         public const string HorarioCambiado = "Horario cambiado";
         public const string InstitucionActualizada = "Institucion actualizada";
+        public const string AvisosConfigurados = "Avisos configurados";
+        public const string AvisosEnviados = "Avisos a padres enviados";
         public const string RespaldoCreado = "Respaldo creado";
         public const string RespaldoRestaurado = "Respaldo restaurado";
 

@@ -48,6 +48,10 @@ namespace AsistenciaQR
         private CampoSubrayado _campoSeccion = null!;
         private Label _lblCorreoEtiqueta = null!;
         private CampoSubrayado _campoCorreo = null!;
+        private Label _lblEncargadoEtiqueta = null!;
+        private CampoSubrayado _campoEncargado = null!;
+        private Label _lblCorreoEncargadoEtiqueta = null!;
+        private CampoSubrayado _campoCorreoEncargado = null!;
 
         private PictureBox _picFoto = null!;
         private Button _btnElegirFoto = null!;
@@ -101,6 +105,8 @@ namespace AsistenciaQR
             OcultarColumna("FotoRuta");
             OcultarColumna("FechaRegistro");
             OcultarColumna("Correo");
+            OcultarColumna("EncargadoNombre");
+            OcultarColumna("EncargadoCorreo");
 
             if (_dgvEstudiantes.Columns["NombreCompleto"] is { } colNombre) colNombre.HeaderText = "Nombre";
             if (_dgvEstudiantes.Columns["Activo"] is { } colActivo) colActivo.HeaderText = "Estado";
@@ -216,6 +222,8 @@ namespace AsistenciaQR
             _campoGrado.Texto = estudiante.Grado;
             _campoSeccion.Texto = estudiante.Seccion;
             _campoCorreo.Texto = estudiante.Correo ?? string.Empty;
+            _campoEncargado.Texto = estudiante.EncargadoNombre ?? string.Empty;
+            _campoCorreoEncargado.Texto = estudiante.EncargadoCorreo ?? string.Empty;
 
             MostrarFoto(estudiante.FotoRuta);
 
@@ -252,6 +260,8 @@ namespace AsistenciaQR
             _campoGrado.Texto = string.Empty;
             _campoSeccion.Texto = string.Empty;
             _campoCorreo.Texto = string.Empty;
+            _campoEncargado.Texto = string.Empty;
+            _campoCorreoEncargado.Texto = string.Empty;
 
             _picFoto.Image?.Dispose();
             _picFoto.Image = null;
@@ -283,6 +293,8 @@ namespace AsistenciaQR
                 Grado = _campoGrado.Texto.Trim(),
                 Seccion = _campoSeccion.Texto.Trim(),
                 Correo = string.IsNullOrWhiteSpace(_campoCorreo.Texto) ? null : _campoCorreo.Texto.Trim(),
+                EncargadoNombre = string.IsNullOrWhiteSpace(_campoEncargado.Texto) ? null : _campoEncargado.Texto.Trim(),
+                EncargadoCorreo = string.IsNullOrWhiteSpace(_campoCorreoEncargado.Texto) ? null : _campoCorreoEncargado.Texto.Trim(),
                 FotoRuta = _fotoRutaActual
             };
 
@@ -450,6 +462,12 @@ namespace AsistenciaQR
             _lblCorreoEtiqueta = CrearEtiqueta("Correo (opcional):");
             _campoCorreo = new CampoSubrayado();
 
+            _lblEncargadoEtiqueta = CrearEtiqueta("Encargado:");
+            _campoEncargado = new CampoSubrayado();
+
+            _lblCorreoEncargadoEtiqueta = CrearEtiqueta("Correo encargado:");
+            _campoCorreoEncargado = new CampoSubrayado();
+
             _picFoto = new PictureBox
             {
                 BorderStyle = BorderStyle.FixedSingle,
@@ -480,6 +498,8 @@ namespace AsistenciaQR
                 _lblGradoEtiqueta, _campoGrado,
                 _lblSeccionEtiqueta, _campoSeccion,
                 _lblCorreoEtiqueta, _campoCorreo,
+                _lblEncargadoEtiqueta, _campoEncargado,
+                _lblCorreoEncargadoEtiqueta, _campoCorreoEncargado,
                 _picFoto, _btnElegirFoto,
                 _btnGuardar, _btnNuevo, _btnDarBaja, _btnReactivar
             });
@@ -642,7 +662,22 @@ namespace AsistenciaQR
 
             ColocarCampo(_lblCorreoEtiqueta, _campoCorreo, anchoCampo);
 
-            int ladoFoto = (int)(90 * _escala);
+            int xDerecha = margenInfo + anchoMitad + (int)(16 * _escala);
+            _lblEncargadoEtiqueta.Font = new Font("Segoe UI", 9 * _escala, FontStyle.Bold);
+            _lblEncargadoEtiqueta.Location = new Point(margenInfo, yInfo);
+            _lblCorreoEncargadoEtiqueta.Font = new Font("Segoe UI", 9 * _escala, FontStyle.Bold);
+            _lblCorreoEncargadoEtiqueta.Location = new Point(xDerecha, yInfo);
+            yInfo = Math.Max(_lblEncargadoEtiqueta.Bottom, _lblCorreoEncargadoEtiqueta.Bottom) + (int)(4 * _escala);
+
+            _campoEncargado.Width = anchoMitad;
+            _campoEncargado.Location = new Point(margenInfo, yInfo);
+            _campoEncargado.EscalarA(_escala);
+            _campoCorreoEncargado.Width = anchoMitad;
+            _campoCorreoEncargado.Location = new Point(xDerecha, yInfo);
+            _campoCorreoEncargado.EscalarA(_escala);
+            yInfo = Math.Max(_campoEncargado.Bottom, _campoCorreoEncargado.Bottom) + (int)(12 * _escala);
+
+            int ladoFoto = (int)(72 * _escala);
             _picFoto.Size = new Size(ladoFoto, ladoFoto);
             _picFoto.Location = new Point(margenInfo, yInfo);
 
@@ -650,26 +685,29 @@ namespace AsistenciaQR
             _btnElegirFoto.Size = new Size(Math.Max(anchoCampo - ladoFoto - (int)(14 * _escala), 60), (int)(32 * _escala));
             _btnElegirFoto.Location = new Point(margenInfo + ladoFoto + (int)(14 * _escala), yInfo + (ladoFoto - _btnElegirFoto.Height) / 2);
 
-            yInfo += ladoFoto + (int)(16 * _escala);
+            yInfo += ladoFoto + (int)(14 * _escala);
 
-            int anchoBotonDoble = (anchoCampo - (int)(16 * _escala)) / 2;
+            // Guardar, Nuevo y Dar de baja (o Reactivar) en una sola fila.
+            int espacio = (int)(10 * _escala);
+            int anchoTercio = (anchoCampo - espacio * 2) / 3;
+            int altoBoton = (int)(36 * _escala);
+
             _btnGuardar.Font = new Font("Segoe UI", 9.5f * _escala, FontStyle.Bold);
-            _btnGuardar.Size = new Size(anchoBotonDoble, (int)(36 * _escala));
+            _btnGuardar.Size = new Size(anchoTercio, altoBoton);
             _btnGuardar.Location = new Point(margenInfo, yInfo);
 
             _btnNuevo.Font = new Font("Segoe UI", 9.5f * _escala);
-            _btnNuevo.Size = new Size(anchoBotonDoble, (int)(36 * _escala));
-            _btnNuevo.Location = new Point(margenInfo + anchoBotonDoble + (int)(16 * _escala), yInfo);
+            _btnNuevo.Size = new Size(anchoTercio, altoBoton);
+            _btnNuevo.Location = new Point(margenInfo + anchoTercio + espacio, yInfo);
 
-            yInfo = _btnGuardar.Bottom + (int)(10 * _escala);
-
+            var ubicacionTercera = new Point(margenInfo + (anchoTercio + espacio) * 2, yInfo);
             _btnDarBaja.Font = new Font("Segoe UI", 9.5f * _escala, FontStyle.Bold);
-            _btnDarBaja.Size = new Size(anchoCampo, (int)(36 * _escala));
-            _btnDarBaja.Location = new Point(margenInfo, yInfo);
+            _btnDarBaja.Size = new Size(anchoTercio, altoBoton);
+            _btnDarBaja.Location = ubicacionTercera;
 
             _btnReactivar.Font = new Font("Segoe UI", 9.5f * _escala, FontStyle.Bold);
-            _btnReactivar.Size = new Size(anchoCampo, (int)(36 * _escala));
-            _btnReactivar.Location = new Point(margenInfo, yInfo);
+            _btnReactivar.Size = new Size(anchoTercio, altoBoton);
+            _btnReactivar.Location = ubicacionTercera;
         }
     }
 }

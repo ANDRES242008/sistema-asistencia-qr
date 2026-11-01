@@ -67,6 +67,10 @@ sigue en desarrollo.
   cuándo (asistencias manuales, bajas, cambios de horario, cuentas,
   inicios de sesión fallidos, respaldos), con filtros y exportación a
   Excel. Solo lectura: nadie puede editarla desde el programa.
+- ✉️ **Avisos a padres por correo**: una vez al día, a la hora elegida,
+  el encargado de cada estudiante que llegó tarde o no llegó recibe un
+  correo. Nunca se repite un aviso, los fallidos se pueden reintentar y
+  la contraseña del correo se guarda cifrada.
 - 🏫 **Para cualquier institución**: cada colegio configura su nombre,
   logo y color, con vista previa del carnet. Aparecen en carnets,
   reportes y el menú; nada de eso está escrito en el código.
@@ -170,6 +174,7 @@ superior, por el formato `.slnx`) y una cámara web.
    | 6 | `006_seguridad_usuarios.sql` | Bloqueo por intentos fallidos y cambio obligatorio de contraseña |
    | 7 | `007_bitacora.sql` | Bitácora de auditoría |
    | 8 | `008_institucion.sql` | Nombre, logo y color de la institución |
+   | 9 | `009_avisos_padres.sql` | Encargado del estudiante, correo del colegio y registro de avisos |
 
    Si actualizas desde una versión anterior, no necesitas correr los
    scripts nuevos: la app aplica sola los cambios pendientes al arrancar.
@@ -255,6 +260,24 @@ Institucion" y un emblema genérico.
 
 En `docs/ejemplos/` está el escudo usado en la demostración de la feria.
 
+### Avisos a padres
+
+1. En **Estudiantes**, llena **Encargado** y **Correo encargado** (o
+   inclúyelos en el Excel de importación: columnas `Encargado` y
+   `Correo del encargado`).
+2. En **Configuración → Avisos**, escribe el correo del colegio. Con
+   Gmail: activa la verificación en dos pasos y crea una
+   [contraseña de aplicación](https://myaccount.google.com/apppasswords);
+   usa esa, no la contraseña normal.
+3. Usa **Enviar prueba** para confirmar que llega, elige la hora del
+   envío diario y activa los avisos.
+
+Los avisos salen de lunes a viernes desde la computadora donde se
+guardó la configuración (la única que puede leer la contraseña
+cifrada), mientras el programa esté abierto. **Enviar avisos de hoy
+ahora** los manda en el momento, y el historial muestra cuáles llegaron
+y cuáles fallaron.
+
 ### Bitácora
 
 En **Bitácora** (menú lateral, solo Administrador) queda registrado,
@@ -278,7 +301,8 @@ estudiantes, hash y verificación de contraseñas, bloqueo por intentos
 fallidos, protección del último Administrador, lectura de la
 configuración, importación desde Excel, distribución de carnets en la
 hoja, retención de respaldos, textos de la bitácora, logo y color del
-carnet, y exportación a Excel. Se ejecutan en cada push con
+carnet, avisos a padres (cuándo se envían, texto del correo, cifrado de la
+contraseña) y exportación a Excel. Se ejecutan en cada push con
 GitHub Actions:
 
 ```bash
@@ -315,8 +339,8 @@ manuales de interfaz están en los checklists de la raíz del repositorio.
 - [x] Respaldos de la base de datos desde la app
 - [x] Bitácora de auditoría
 - [x] Personalización por institución (nombre, logo, colores)
+- [x] Avisos a padres de familia por correo (tardanza o ausencia)
 - [ ] Instalador con configuración automática de la base de datos
-- [ ] Notificaciones a padres de familia por tardanza o ausencia
 
 ## Autor
 

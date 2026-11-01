@@ -12,5 +12,7 @@ namespace AsistenciaQR.Modelos
         public string? FotoRuta { get; set; }
         public bool Activo { get; set; }
         public DateTime FechaRegistro { get; set; }
+        public string? EncargadoNombre { get; set; }
+        public string? EncargadoCorreo { get; set; }
     }
 }

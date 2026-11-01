@@ -70,6 +70,16 @@ namespace AsistenciaQR
             using var login = new FrmLogin();
             if (login.ShowDialog() == DialogResult.OK)
             {
+                // Avisos a padres: cada minuto se revisa si ya es la hora
+                // del envio del dia. Solo una revision a la vez.
+                int revisando = 0;
+                using var temporizadorAvisos = new System.Threading.Timer(_ =>
+                {
+                    if (Interlocked.Exchange(ref revisando, 1) == 1) return;
+                    try { Servicios.AvisosService.EnviarAutomaticoSiCorresponde(RegistrarEnLog); }
+                    finally { Interlocked.Exchange(ref revisando, 0); }
+                }, null, TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(1));
+
                 Application.Run(new FrmDashboard());
             }
         }

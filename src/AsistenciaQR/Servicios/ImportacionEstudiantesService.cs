@@ -22,7 +22,7 @@ namespace AsistenciaQR.Servicios
     {
         public const string NombreHoja = "Estudiantes";
 
-        private static readonly string[] Encabezados = { "NIE", "Nombre completo", "Grado", "Seccion", "Correo" };
+        private static readonly string[] Encabezados = { "NIE", "Nombre completo", "Grado", "Seccion", "Correo", "Encargado", "Correo del encargado" };
 
         private readonly EstudianteRepository _estudianteRepository = new();
 
@@ -48,6 +48,8 @@ namespace AsistenciaQR.Servicios
             hoja.Column(3).Width = 12;
             hoja.Column(4).Width = 10;
             hoja.Column(5).Width = 32;
+            hoja.Column(6).Width = 32;
+            hoja.Column(7).Width = 32;
             hoja.SheetView.FreezeRows(1);
 
             var instrucciones = libro.Worksheets.Add("Instrucciones");
@@ -59,9 +61,10 @@ namespace AsistenciaQR.Servicios
                 "- NIE: entre 6 y 10 digitos, sin guiones. No puede repetirse.",
                 "- Nombre completo: nombres y apellidos.",
                 "- Grado y Seccion: obligatorios (ejemplo: B2DA y A).",
-                "- Correo: opcional.",
+                "- Correo: opcional (del estudiante).",
+                "- Encargado y Correo del encargado: opcionales; a ese correo llegan los avisos de tardanza o ausencia.",
                 "",
-                "Ejemplo:  12345678 | Valeria Martinez Lopez | B2DA | A | valeria@ejemplo.com",
+                "Ejemplo:  12345678 | Valeria Martinez Lopez | B2DA | A | valeria@ejemplo.com | Rosa Lopez | rosa.lopez@ejemplo.com",
                 "",
                 "Las filas con errores se muestran en rojo antes de importar y no se guardan."
             };
@@ -159,6 +162,8 @@ namespace AsistenciaQR.Servicios
                     Grado = Leer("grado"),
                     Seccion = Leer("seccion"),
                     Correo = string.IsNullOrWhiteSpace(Leer("correo")) ? null : Leer("correo"),
+                    EncargadoNombre = string.IsNullOrWhiteSpace(Leer("encargado")) ? null : Leer("encargado"),
+                    EncargadoCorreo = string.IsNullOrWhiteSpace(Leer("correoencargado")) ? null : Leer("correoencargado"),
                     Activo = true
                 };
 
@@ -220,6 +225,8 @@ namespace AsistenciaQR.Servicios
                     "grado" => "grado",
                     "seccion" => "seccion",
                     "correo" or "correo electronico" or "email" => "correo",
+                    "encargado" or "nombre del encargado" or "responsable" => "encargado",
+                    "correo del encargado" or "correo encargado" or "correo del responsable" => "correoencargado",
                     _ => null
                 };
 

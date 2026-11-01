@@ -61,6 +61,7 @@ namespace AsistenciaQR
         private Button _btnProbarSql = null!;
         private Button _btnRespaldos = null!;
         private Button _btnInstitucion = null!;
+        private Button _btnAvisos = null!;
         private Panel _pnlResultadoSql = null!;
         private Label _lblResultadoSql = null!;
 
@@ -410,14 +411,15 @@ namespace AsistenciaQR
 
             // Aviso a la izquierda, en el mismo formato "banner" que
             // camara/SQL: consistencia total entre los 3 indicadores.
-            (_pnlGuardado, _lblGuardado) = CrearBanner("ℹ️  Los cambios se aplican al guardar.");
+            (_pnlGuardado, _lblGuardado) = CrearBanner("ℹ️  Se aplica al guardar.");
+            _lblGuardado.AutoEllipsis = true; // mensajes largos: una linea con "..."
 
             // Regresar y Guardar quedan JUNTOS, pegados entre si, los
             // dos alineados a la derecha del mismo bloque.
             _btnRegresar = new BotonRegresar();
             _btnRegresar.Click += BtnRegresar_Click;
 
-            _btnGuardar = new BotonPrimario { Text = "💾  Guardar Configuracion" };
+            _btnGuardar = new BotonPrimario { Text = "💾  Guardar" };
             _btnGuardar.Click += BtnGuardar_Click;
 
             _btnInstitucion = CrearBotonPildora("🏫  Institucion", Colores.AzulMarino);
@@ -427,7 +429,14 @@ namespace AsistenciaQR
                 institucion.ShowDialog(this);
             };
 
-            _pnlAccionesFinal.Controls.AddRange(new Control[] { _pnlGuardado, _btnInstitucion, _btnRegresar, _btnGuardar });
+            _btnAvisos = CrearBotonPildora("✉️  Avisos", Colores.AzulMarino);
+            _btnAvisos.Click += (_, _) =>
+            {
+                using var avisos = new FrmAvisos();
+                avisos.ShowDialog(this);
+            };
+
+            _pnlAccionesFinal.Controls.AddRange(new Control[] { _pnlGuardado, _btnAvisos, _btnInstitucion, _btnRegresar, _btnGuardar });
         }
 
         private static Label CrearEtiqueta(string texto) => new()
@@ -764,7 +773,7 @@ namespace AsistenciaQR
 
            
             _btnGuardar.Font = new Font("Segoe UI Emoji", 10 * _escala, FontStyle.Bold);
-            _btnGuardar.Size = new Size((int)(280 * _escala), altoBoton);
+            _btnGuardar.Size = new Size(Escala.AnchoTexto(_btnGuardar, (int)(22 * _escala)), altoBoton);
             _btnGuardar.Location = new Point(anchoDisponible - margen - _btnGuardar.Width, centrado);
 
             int gapBotones = (int)(25 * _escala);
@@ -776,12 +785,17 @@ namespace AsistenciaQR
             _btnInstitucion.Location = new Point(_btnRegresar.Left - gapBotones - _btnInstitucion.Width, centrado);
             AplicarRegionRedondeada(_btnInstitucion, _btnInstitucion.Height / 2);
 
+            _btnAvisos.Font = new Font("Segoe UI Emoji", 9.5f * _escala, FontStyle.Bold);
+            _btnAvisos.Size = new Size(Escala.AnchoTexto(_btnAvisos, (int)(20 * _escala)), altoBoton);
+            _btnAvisos.Location = new Point(_btnInstitucion.Left - (int)(10 * _escala) - _btnAvisos.Width, centrado);
+            AplicarRegionRedondeada(_btnAvisos, _btnAvisos.Height / 2);
+
             int alturaBanner = (int)(38 * _escala);
             int centradoBanner = (alturaFila - alturaBanner) / 2;
             int gapAntesBotones = (int)(16 * _escala);
 
             _lblGuardado.Font = new Font("Segoe UI", 9 * _escala, FontStyle.Bold);
-            _pnlGuardado.Size = new Size(Math.Max(_btnInstitucion.Left - margen - gapAntesBotones, 80), alturaBanner);
+            _pnlGuardado.Size = new Size(Math.Max(_btnAvisos.Left - margen - gapAntesBotones, 80), alturaBanner);
             _pnlGuardado.Location = new Point(margen, centradoBanner);
             AplicarRegionRedondeada(_pnlGuardado, (int)(9 * _escala));
         }

@@ -76,6 +76,8 @@ namespace AsistenciaQR.Servicios
                     ("Grado", anterior.Grado, estudiante.Grado),
                     ("Seccion", anterior.Seccion, estudiante.Seccion),
                     ("Correo", anterior.Correo, estudiante.Correo),
+                    ("Encargado", anterior.EncargadoNombre, estudiante.EncargadoNombre),
+                    ("Correo del encargado", anterior.EncargadoCorreo, estudiante.EncargadoCorreo),
                     ("Foto", anterior.FotoRuta is null ? null : "si", estudiante.FotoRuta is null ? null : (rutaFotoOrigen is null ? "si" : "nueva")));
                 BitacoraService.Registrar(BitacoraService.EstudianteEditado, $"NIE {estudiante.NIE} · {cambios}");
             }
@@ -143,7 +145,19 @@ namespace AsistenciaQR.Servicios
                 return ResultadoOperacion.Error("El correo no tiene un formato valido.");
             }
 
+            // Al correo del encargado se le mandan avisos: debe ser una
+            // direccion completa, no solo "tener una arroba".
+            if (!string.IsNullOrWhiteSpace(estudiante.EncargadoCorreo) && !EsCorreoValido(estudiante.EncargadoCorreo))
+            {
+                return ResultadoOperacion.Error("El correo del encargado no tiene un formato valido.");
+            }
+
             return ResultadoOperacion.Ok();
         }
+
+        internal static bool EsCorreoValido(string correo) =>
+            System.Net.Mail.MailAddress.TryCreate(correo.Trim(), out var direccion) &&
+            direccion.Address == correo.Trim() &&
+            direccion.Host.Contains('.');
     }
 }
