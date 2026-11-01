@@ -132,28 +132,38 @@ namespace AsistenciaQR
         private void ConstruirInterfaz()
         {
             Text = "AsistenciaQR - Importar estudiantes desde Excel";
-            Size = new Size(1000, 640);
-            MinimumSize = new Size(800, 480);
+            Size = Escala.Ventana(this, 1000, 640);
+            MinimumSize = Escala.Px(this, 800, 460);
             StartPosition = FormStartPosition.CenterParent;
             AutoScaleMode = AutoScaleMode.Dpi;
             BackColor = Colores.GrisClaro;
-            Padding = new Padding(20);
+            Padding = new Padding(Escala.Px(this, 20));
 
-            var panelSuperior = new Panel { Dock = DockStyle.Top, Height = 92 };
+            var panelSuperior = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false,
+                AutoSize = true,
+                Padding = new Padding(0, 0, 0, Escala.Px(this, 10))
+            };
 
-            var lblTitulo = new Label
+            panelSuperior.Controls.Add(new Label
             {
                 Text = "Importar estudiantes",
                 Font = new Font("Segoe UI", 15, FontStyle.Bold),
                 ForeColor = Colores.AzulMarino,
                 AutoSize = true,
-                Location = new Point(0, 0)
-            };
+                Margin = new Padding(0, 0, 0, Escala.Px(this, 8))
+            });
 
-            var btnElegir = CrearBoton("📂  Elegir archivo Excel...", new Point(0, 46), 220);
+            var filaBotones = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = Padding.Empty };
+
+            var btnElegir = Escala.Boton("📂  Elegir archivo Excel...");
             btnElegir.Click += BtnElegirArchivo_Click;
 
-            var btnPlantilla = CrearBoton("⬇  Descargar plantilla", new Point(230, 46), 190);
+            var btnPlantilla = Escala.Boton("⬇  Descargar plantilla");
+            btnPlantilla.Margin = new Padding(Escala.Px(this, 10), 0, 0, 0);
             btnPlantilla.Click += BtnPlantilla_Click;
 
             _lblArchivo = new Label
@@ -161,10 +171,12 @@ namespace AsistenciaQR
                 ForeColor = Colores.GrisSecundario,
                 Font = new Font("Segoe UI", 9.5f),
                 AutoSize = true,
-                Location = new Point(436, 54)
+                Anchor = AnchorStyles.Left,
+                Margin = new Padding(Escala.Px(this, 14), 0, 0, 0)
             };
 
-            panelSuperior.Controls.AddRange(new Control[] { lblTitulo, btnElegir, btnPlantilla, _lblArchivo });
+            filaBotones.Controls.AddRange(new Control[] { btnElegir, btnPlantilla, _lblArchivo });
+            panelSuperior.Controls.Add(filaBotones);
 
             _dgvFilas = new DataGridView
             {
@@ -178,10 +190,10 @@ namespace AsistenciaQR
                 BackgroundColor = Colores.BlancoPuro,
                 BorderStyle = BorderStyle.None,
                 RowHeadersVisible = false,
-                Font = new Font("Segoe UI Emoji", 9.5f)
+                Font = new Font("Segoe UI Emoji", 9.5f),
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
             };
-            _dgvFilas.RowTemplate.Height = 28;
-            _dgvFilas.ColumnHeadersHeight = 32;
+            _dgvFilas.RowTemplate.Height = Escala.Px(this, 28);
             _dgvFilas.Columns.Add("Fila", "Fila");
             _dgvFilas.Columns.Add("NIE", "NIE");
             _dgvFilas.Columns.Add("Nombre", "Nombre completo");
@@ -191,62 +203,54 @@ namespace AsistenciaQR
             _dgvFilas.Columns.Add("Estado", "Estado");
             _dgvFilas.Columns["Fila"]!.FillWeight = 35;
             _dgvFilas.Columns["Grado"]!.FillWeight = 50;
-            _dgvFilas.Columns["Seccion"]!.FillWeight = 50;
+            _dgvFilas.Columns["Seccion"]!.FillWeight = 62;
             _dgvFilas.Columns["Nombre"]!.FillWeight = 160;
             _dgvFilas.Columns["Estado"]!.FillWeight = 190;
 
-            var panelInferior = new Panel { Dock = DockStyle.Bottom, Height = 64 };
+            // Resumen a la izquierda; Cancelar e Importar a la derecha.
+            var panelInferior = new TableLayoutPanel
+            {
+                Dock = DockStyle.Bottom,
+                AutoSize = true,
+                ColumnCount = 3,
+                Padding = new Padding(0, Escala.Px(this, 12), 0, 0)
+            };
+            panelInferior.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            panelInferior.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panelInferior.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
             _lblResumen = new Label
             {
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
                 AutoSize = true,
-                Location = new Point(0, 24)
+                Anchor = AnchorStyles.Left
             };
 
             _btnImportar = new BotonPrimario
             {
                 Text = "Importar",
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Size = new Size(240, 42),
-                Anchor = AnchorStyles.Right | AnchorStyles.Bottom,
+                AutoSize = true,
+                Padding = new Padding(Escala.Px(this, 24), 0, Escala.Px(this, 24), 0),
+                MinimumSize = Escala.Px(this, 200, 42),
                 Enabled = false
             };
             _btnImportar.Click += BtnImportar_Click;
 
-            var btnCancelar = CrearBoton("Cancelar", Point.Empty, 120);
-            btnCancelar.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
+            var btnCancelar = Escala.Boton("Cancelar", altoDiseno: 42);
+            btnCancelar.Margin = new Padding(0, 0, Escala.Px(this, 10), 0);
             btnCancelar.DialogResult = DialogResult.Cancel;
             CancelButton = btnCancelar;
 
-            panelInferior.Controls.AddRange(new Control[] { _lblResumen, _btnImportar, btnCancelar });
-            panelInferior.Resize += (_, _) =>
-            {
-                _btnImportar.Location = new Point(panelInferior.Width - _btnImportar.Width, 16);
-                btnCancelar.Location = new Point(_btnImportar.Left - btnCancelar.Width - 10, 16);
-            };
+            panelInferior.Controls.Add(_lblResumen, 0, 0);
+            panelInferior.Controls.Add(btnCancelar, 1, 0);
+            panelInferior.Controls.Add(_btnImportar, 2, 0);
 
             Controls.Add(_dgvFilas);
             Controls.Add(panelInferior);
             Controls.Add(panelSuperior);
 
             MostrarFilas();
-        }
-
-        private static Button CrearBoton(string texto, Point ubicacion, int ancho)
-        {
-            var boton = new Button
-            {
-                Text = texto,
-                FlatStyle = FlatStyle.Flat,
-                BackColor = Colores.BlancoPuro,
-                ForeColor = Colores.GrisOscuro,
-                Font = new Font("Segoe UI Emoji", 9.5f),
-                Size = new Size(ancho, 38),
-                Location = ubicacion
-            };
-            boton.FlatAppearance.BorderColor = Color.FromArgb(219, 224, 230);
-            return boton;
         }
     }
 }

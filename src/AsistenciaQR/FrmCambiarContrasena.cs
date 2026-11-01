@@ -111,7 +111,7 @@ namespace AsistenciaQR
                 Location = new Point(margen, y)
             };
             Controls.Add(_lblError);
-            y += 30;
+            y += 44; // espacio para un mensaje de error de hasta dos lineas
 
             int anchoBoton = (ancho - 12) / 2;
             var btnGuardar = new BotonPrimario
@@ -140,6 +140,10 @@ namespace AsistenciaQR
 
             Controls.Add(btnGuardar);
             Controls.Add(btnCancelar);
+
+            // Las alturas salen del texto ya medido (crece con la escala
+            // de Windows), asi que el alto de la ventana se calcula al final.
+            ClientSize = new Size(ClientSize.Width, btnGuardar.Bottom + 26);
         }
 
         private int AgregarCampo(string etiqueta, CampoSubrayado campo, int x, int y, int ancho)

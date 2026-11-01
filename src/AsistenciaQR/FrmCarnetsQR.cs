@@ -482,7 +482,7 @@ namespace AsistenciaQR
             _campoBuscar.EscalarA(_escala);
 
             _btnCarnetsLista.Font = new Font("Segoe UI Emoji", 9.5f * _escala);
-            _btnCarnetsLista.Size = new Size((int)(250 * _escala), _campoBuscar.Height);
+            _btnCarnetsLista.Size = new Size(Escala.AnchoTexto(_btnCarnetsLista, (int)(18 * _escala)), _campoBuscar.Height);
             _btnCarnetsLista.Location = new Point(_campoBuscar.Right + (int)(14 * _escala), y0);
 
             int y1 = _campoBuscar.Bottom + (int)(18 * _escala);

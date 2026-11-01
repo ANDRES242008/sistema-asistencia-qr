@@ -184,42 +184,47 @@ namespace AsistenciaQR
         private void ConstruirInterfaz()
         {
             Text = "AsistenciaQR - Respaldos de la base de datos";
-            Size = new Size(820, 600);
-            MinimumSize = new Size(700, 480);
+            Size = Escala.Ventana(this, 900, 600);
+            MinimumSize = Escala.Px(this, 700, 420);
             StartPosition = FormStartPosition.CenterParent;
             AutoScaleMode = AutoScaleMode.Dpi;
             BackColor = Colores.GrisClaro;
-            Padding = new Padding(20);
+            Padding = new Padding(Escala.Px(this, 20));
 
-            var panelSuperior = new Panel { Dock = DockStyle.Top, Height = 104 };
+            // Titulo, ayuda y estado apilados: cada uno toma el alto de su texto.
+            var panelSuperior = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false,
+                AutoSize = true,
+                Padding = new Padding(0, 0, 0, Escala.Px(this, 10))
+            };
 
-            var lblTitulo = new Label
+            panelSuperior.Controls.Add(new Label
             {
                 Text = "Respaldos",
                 Font = new Font("Segoe UI", 15, FontStyle.Bold),
                 ForeColor = Colores.AzulMarino,
-                AutoSize = true,
-                Location = new Point(0, 0)
-            };
+                AutoSize = true
+            });
 
-            var lblAyuda = new Label
+            panelSuperior.Controls.Add(new Label
             {
-                Text = $"Se hace un respaldo automatico al dia (se conservan los ultimos {RespaldoService.AutomaticosAConservar}). " +
+                Text = $"Respaldo automatico diario (se conservan los ultimos {RespaldoService.AutomaticosAConservar}). " +
                        "Los manuales no se borran solos.",
                 Font = new Font("Segoe UI", 9),
                 ForeColor = Colores.GrisSecundario,
                 AutoSize = true,
-                Location = new Point(2, 38)
-            };
+                Margin = new Padding(3, 0, 3, Escala.Px(this, 8))
+            });
 
             _lblEstado = new Label
             {
                 Font = new Font("Segoe UI Emoji", 10, FontStyle.Bold),
-                AutoSize = true,
-                Location = new Point(0, 66)
+                AutoSize = true
             };
-
-            panelSuperior.Controls.AddRange(new Control[] { lblTitulo, lblAyuda, _lblEstado });
+            panelSuperior.Controls.Add(_lblEstado);
 
             _dgvRespaldos = new DataGridView
             {
@@ -234,37 +239,40 @@ namespace AsistenciaQR
                 BackgroundColor = Colores.BlancoPuro,
                 BorderStyle = BorderStyle.None,
                 RowHeadersVisible = false,
-                Font = new Font("Segoe UI", 10)
+                Font = new Font("Segoe UI", 10),
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
             };
-            _dgvRespaldos.RowTemplate.Height = 30;
-            _dgvRespaldos.ColumnHeadersHeight = 32;
+            _dgvRespaldos.RowTemplate.Height = Escala.Px(this, 30);
             _dgvRespaldos.Columns.Add("Fecha", "Fecha");
             _dgvRespaldos.Columns.Add("Tipo", "Tipo");
             _dgvRespaldos.Columns.Add("Tamano", "Tamano");
 
+            // Botones a la medida de su texto; si no caben, pasan a otra fila.
             _panelBotones = new FlowLayoutPanel
             {
                 Dock = DockStyle.Bottom,
-                Height = 60,
-                Padding = new Padding(0, 14, 0, 0),
-                WrapContents = false
+                AutoSize = true,
+                WrapContents = true,
+                Padding = new Padding(0, Escala.Px(this, 12), 0, 0)
             };
 
             var btnCrear = new BotonPrimario
             {
                 Text = "💾  Crear respaldo ahora",
                 Font = new Font("Segoe UI Emoji", 10, FontStyle.Bold),
-                Size = new Size(210, 40)
+                AutoSize = true,
+                Padding = new Padding(Escala.Px(this, 16), 0, Escala.Px(this, 16), 0),
+                MinimumSize = new Size(0, Escala.Px(this, 40))
             };
             btnCrear.Click += BtnCrear_Click;
 
-            _btnCopiar = CrearBoton("📤  Copiar a USB...", 170);
+            _btnCopiar = CrearBoton("📤  Copiar a USB...");
             _btnCopiar.Click += BtnCopiar_Click;
 
-            _btnRestaurar = CrearBoton("↩  Restaurar seleccionado", 200, peligro: true);
+            _btnRestaurar = CrearBoton("↩  Restaurar seleccionado", peligro: true);
             _btnRestaurar.Click += BtnRestaurar_Click;
 
-            var btnRestaurarArchivo = CrearBoton("📂  Restaurar desde archivo...", 210, peligro: true);
+            var btnRestaurarArchivo = CrearBoton("📂  Restaurar desde archivo...", peligro: true);
             btnRestaurarArchivo.Click += BtnRestaurarArchivo_Click;
 
             _panelBotones.Controls.AddRange(new Control[] { btnCrear, _btnCopiar, _btnRestaurar, btnRestaurarArchivo });
@@ -274,19 +282,10 @@ namespace AsistenciaQR
             Controls.Add(panelSuperior);
         }
 
-        private static Button CrearBoton(string texto, int ancho, bool peligro = false)
+        private Button CrearBoton(string texto, bool peligro = false)
         {
-            var boton = new Button
-            {
-                Text = texto,
-                FlatStyle = FlatStyle.Flat,
-                BackColor = peligro ? Color.FromArgb(255, 240, 240) : Colores.BlancoPuro,
-                ForeColor = peligro ? Color.Firebrick : Colores.GrisOscuro,
-                Font = new Font("Segoe UI Emoji", 9.5f),
-                Size = new Size(ancho, 40),
-                Margin = new Padding(10, 0, 0, 0)
-            };
-            boton.FlatAppearance.BorderColor = peligro ? Color.FromArgb(240, 200, 200) : Color.FromArgb(219, 224, 230);
+            var boton = Escala.Boton(texto, peligro, altoDiseno: 40);
+            boton.Margin = new Padding(Escala.Px(this, 10), 0, 0, Escala.Px(this, 6));
             return boton;
         }
     }

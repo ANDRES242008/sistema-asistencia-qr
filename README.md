@@ -67,6 +67,9 @@ sigue en desarrollo.
   cuándo (asistencias manuales, bajas, cambios de horario, cuentas,
   inicios de sesión fallidos, respaldos), con filtros y exportación a
   Excel. Solo lectura: nadie puede editarla desde el programa.
+- 🏫 **Para cualquier institución**: cada colegio configura su nombre,
+  logo y color, con vista previa del carnet. Aparecen en carnets,
+  reportes y el menú; nada de eso está escrito en el código.
 - 📊 **Dashboard en vivo**: presentes, tardanzas, faltantes y
   porcentaje de asistencia del día.
 - 📈 **Reportes filtrables**: por fecha, grado o sección, exportables
@@ -166,6 +169,7 @@ superior, por el formato `.slnx`) y una cámara web.
    | 5 | `005_horarios_puntualidad.sql` | Crea la configuración de horario y tolerancia |
    | 6 | `006_seguridad_usuarios.sql` | Bloqueo por intentos fallidos y cambio obligatorio de contraseña |
    | 7 | `007_bitacora.sql` | Bitácora de auditoría |
+   | 8 | `008_institucion.sql` | Nombre, logo y color de la institución |
 
    Si actualizas desde una versión anterior, no necesitas correr los
    scripts nuevos: la app aplica sola los cambios pendientes al arrancar.
@@ -240,6 +244,17 @@ En **Configuración → Respaldos**:
 Para respaldar y restaurar, la cuenta de Windows que usa el programa
 debe ser administradora de SQL Server (lo es quien lo instaló).
 
+### Datos de la institución
+
+En **Configuración → Institución** se escriben el nombre (como debe
+salir en el carnet), el logo o escudo y el color de la banda del
+carnet, con una vista previa que se actualiza al momento. Se guardan en
+la base de datos: se ven igual en todas las computadoras y viajan con
+los respaldos. Mientras no se configuren, el sistema muestra "Mi
+Institucion" y un emblema genérico.
+
+En `docs/ejemplos/` está el escudo usado en la demostración de la feria.
+
 ### Bitácora
 
 En **Bitácora** (menú lateral, solo Administrador) queda registrado,
@@ -262,7 +277,8 @@ necesitar SQL Server: clasificación de puntualidad, validación de
 estudiantes, hash y verificación de contraseñas, bloqueo por intentos
 fallidos, protección del último Administrador, lectura de la
 configuración, importación desde Excel, distribución de carnets en la
-hoja, retención de respaldos, textos de la bitácora y exportación a Excel. Se ejecutan en cada push con
+hoja, retención de respaldos, textos de la bitácora, logo y color del
+carnet, y exportación a Excel. Se ejecutan en cada push con
 GitHub Actions:
 
 ```bash
@@ -298,7 +314,7 @@ manuales de interfaz están en los checklists de la raíz del repositorio.
 - [x] Importar estudiantes desde Excel y carnets en lote
 - [x] Respaldos de la base de datos desde la app
 - [x] Bitácora de auditoría
-- [ ] Personalización por institución (nombre, logo, colores)
+- [x] Personalización por institución (nombre, logo, colores)
 - [ ] Instalador con configuración automática de la base de datos
 - [ ] Notificaciones a padres de familia por tardanza o ausencia
 

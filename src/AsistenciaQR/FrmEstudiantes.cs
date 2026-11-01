@@ -564,7 +564,7 @@ namespace AsistenciaQR
             _chkMostrarInactivos.Location = new Point(_cmbSeccionFiltro.Right + (int)(16 * _escala), y0 + (int)(12 * _escala));
 
             _btnImportarExcel.Font = new Font("Segoe UI Emoji", 9.5f * _escala);
-            _btnImportarExcel.Size = new Size((int)(210 * _escala), _campoBuscar.Height);
+            _btnImportarExcel.Size = new Size(Escala.AnchoTexto(_btnImportarExcel, (int)(18 * _escala)), _campoBuscar.Height);
             _btnImportarExcel.Location = new Point(x0 + anchoDisponible - _btnImportarExcel.Width, y0);
 
             int y1 = _campoBuscar.Bottom + (int)(20 * _escala);

@@ -32,6 +32,7 @@ namespace AsistenciaQR.Servicios
         public const string QrRegenerado = "QR regenerado";
         public const string AsistenciaManual = "Asistencia manual";
         public const string HorarioCambiado = "Horario cambiado";
+        public const string InstitucionActualizada = "Institucion actualizada";
         public const string RespaldoCreado = "Respaldo creado";
         public const string RespaldoRestaurado = "Respaldo restaurado";
 

@@ -249,7 +249,8 @@ namespace AsistenciaQR
                 float y = ev.MarginBounds.Top;
                 g.DrawString("Reporte de Asistencia del Dia", fuenteTitulo, Brushes.Black, ev.MarginBounds.Left, y);
                 y += 28;
-                g.DrawString($"Fecha: {_dtpFecha.Value:dd/MM/yyyy}", fuenteTexto, Brushes.Black, ev.MarginBounds.Left, y);
+                g.DrawString($"{new InstitucionService().Obtener().Nombre}  ·  Fecha: {_dtpFecha.Value:dd/MM/yyyy}",
+                    fuenteTexto, Brushes.Black, ev.MarginBounds.Left, y);
                 y += 26;
 
                 string[] encabezados = { "NIE", "Nombre", "Grado", "Seccion", "Hora", "Estado" };

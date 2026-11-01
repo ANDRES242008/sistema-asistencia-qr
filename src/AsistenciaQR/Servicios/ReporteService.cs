@@ -83,7 +83,9 @@ namespace AsistenciaQR.Servicios
 
             graficos.DrawString("Reporte de Asistencias", fuenteTitulo, XBrushes.Black,
                 new XPoint(margen, y + 15));
-            y += 35;
+            graficos.DrawString(new InstitucionService().Obtener().Nombre, fuenteTexto, XBrushes.Gray,
+                new XPoint(margen, y + 30));
+            y += 48;
 
             void DibujarEncabezado()
             {

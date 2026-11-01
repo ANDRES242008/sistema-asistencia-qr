@@ -15,20 +15,15 @@ namespace AsistenciaQR.Servicios
     /// para que nunca se monte un elemento con otro sin importar que
     /// tan largo sea el nombre del estudiante.
     ///
-    /// Dos cosas de la referencia que NO se copiaron a proposito:
-    /// - El escudo de la referencia es generico/inventado (typico de
-    ///   una imagen hecha con IA). Se sigue usando el escudo REAL de
-    ///   Sonsonate que ya me diste, dentro del mismo marco dorado.
-    /// - La referencia trae un error de ortografia ("Sécción"). Aqui
-    ///   se usa "Seccion" bien escrito.
+    /// El nombre, el logo y el color de la banda salen de los datos de
+    /// la institucion (InstitucionService); sin configurar, se usa un
+    /// nombre generico y el emblema por defecto.
     ///
     /// El tamaño del QR (330px) y el tamaño de tarjeta (CR-80) siguen
     /// sin tocarse, por las mismas razones de siempre.
     /// </summary>
     public class CarnetService
     {
-        private const string NombreInstitucion = "Colegio salarrue";
-        private const string RutaEscudo = "Assets\\escudo_sonsonate.jpg";
 
         private const int AnchoCarnet = 638;
         private const int AltoCarnet = 1013;
@@ -40,8 +35,9 @@ namespace AsistenciaQR.Servicios
 
         private const int FotoDiametro = 300;
 
-        private static readonly Color ColorBandaArriba = Color.FromArgb(18, 88, 104);
-        private static readonly Color ColorBandaAbajo = Color.FromArgb(13, 120, 92);   // verde esmeralda
+        // Colores originales de la banda, cuando la institucion no elige uno.
+        private static readonly Color BandaArribaPorDefecto = Color.FromArgb(18, 88, 104);
+        private static readonly Color BandaAbajoPorDefecto = Color.FromArgb(13, 120, 92);   // verde esmeralda
         private static readonly Color ColorFondoArriba = Color.FromArgb(26, 66, 102);
         private static readonly Color ColorFondoAbajo = Color.FromArgb(14, 38, 64);
         private static readonly Color ColorAcentoNombre = Color.FromArgb(110, 231, 209); // mint
@@ -51,9 +47,29 @@ namespace AsistenciaQR.Servicios
         private static readonly Color ColorLinea = Color.FromArgb(90, 255, 255, 255);
 
         private readonly string _carpetaCarnets;
+        private readonly string _nombreInstitucion;
+        private readonly byte[]? _logo;
+        private readonly Color _bandaArriba;
+        private readonly Color _bandaAbajo;
 
-        public CarnetService()
+        /// <param name="institucion">Para la vista previa; si es null se usan los datos guardados.</param>
+        public CarnetService(ConfiguracionInstitucion? institucion = null)
         {
+            institucion ??= new InstitucionService().Obtener();
+            _nombreInstitucion = institucion.Nombre;
+            _logo = institucion.Logo;
+
+            if (InstitucionService.LeerColor(institucion.ColorPrincipal) is { } color)
+            {
+                _bandaAbajo = color;
+                _bandaArriba = InstitucionService.Oscurecer(color, 0.25f);
+            }
+            else
+            {
+                _bandaArriba = BandaArribaPorDefecto;
+                _bandaAbajo = BandaAbajoPorDefecto;
+            }
+
             _carpetaCarnets = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "AsistenciaQR", "Carnets");
@@ -63,7 +79,19 @@ namespace AsistenciaQR.Servicios
 
         public string GenerarImagenCarnet(Estudiante estudiante, Qr qr)
         {
-            using var bitmap = new Bitmap(AnchoCarnet, AltoCarnet);
+            using var bitmap = DibujarCarnet(estudiante, qr);
+
+            string nombreArchivo = $"carnet_{estudiante.NIE}.png";
+            string rutaCompleta = Path.Combine(_carpetaCarnets, nombreArchivo);
+            bitmap.Save(rutaCompleta, System.Drawing.Imaging.ImageFormat.Png);
+
+            return rutaCompleta;
+        }
+
+        /// <summary>Dibuja el carnet en memoria (tambien sirve de vista previa).</summary>
+        public Bitmap DibujarCarnet(Estudiante estudiante, Qr qr)
+        {
+            var bitmap = new Bitmap(AnchoCarnet, AltoCarnet);
             using var g = Graphics.FromImage(bitmap);
 
             g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -91,12 +119,7 @@ namespace AsistenciaQR.Servicios
             DibujarPie(g, y);
 
             g.ResetClip();
-
-            string nombreArchivo = $"carnet_{estudiante.NIE}.png";
-            string rutaCompleta = Path.Combine(_carpetaCarnets, nombreArchivo);
-            bitmap.Save(rutaCompleta, System.Drawing.Imaging.ImageFormat.Png);
-
-            return rutaCompleta;
+            return bitmap;
         }
 
         public string ExportarCarnetComoPdf(string rutaImagenCarnet)
@@ -205,10 +228,10 @@ namespace AsistenciaQR.Servicios
             g.FillRectangle(degradado, area);
         }
 
-        private static void DibujarBandaLateral(Graphics g)
+        private void DibujarBandaLateral(Graphics g)
         {
             var areaBanda = new Rectangle(0, 0, AnchoBanda, AltoCarnet);
-            using (var degradado = new LinearGradientBrush(areaBanda, ColorBandaArriba, ColorBandaAbajo, LinearGradientMode.Vertical))
+            using (var degradado = new LinearGradientBrush(areaBanda, _bandaArriba, _bandaAbajo, LinearGradientMode.Vertical))
                 g.FillRectangle(degradado, areaBanda);
 
             using (var pincelPunto = new SolidBrush(Color.FromArgb(30, 255, 255, 255)))
@@ -220,23 +243,34 @@ namespace AsistenciaQR.Servicios
 
             DibujarEmblema(g);
 
-            using var fuenteBanda = new Font("Segoe UI", 20, FontStyle.Bold);
-            using var pincelTexto = new SolidBrush(ColorTextoClaro);
-            var formato = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-
             float yInicio = 195;
             float yFin = AltoCarnet - 40;
             float longitud = yFin - yInicio;
             float centroY = yInicio + longitud / 2f;
 
+            // Nombres largos: se baja la letra hasta que quepan en una linea.
+            string texto = _nombreInstitucion.ToUpper();
+            float tamanoLetra = 20;
+            var fuenteBanda = new Font("Segoe UI", tamanoLetra, FontStyle.Bold);
+            while (tamanoLetra > 11 && g.MeasureString(texto, fuenteBanda).Width > longitud - 10)
+            {
+                fuenteBanda.Dispose();
+                tamanoLetra -= 1;
+                fuenteBanda = new Font("Segoe UI", tamanoLetra, FontStyle.Bold);
+            }
+
+            using var pincelTexto = new SolidBrush(ColorTextoClaro);
+            var formato = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+
             g.TranslateTransform(AnchoBanda / 2f, centroY);
             g.RotateTransform(-90);
-            g.DrawString(NombreInstitucion.ToUpper(), fuenteBanda, pincelTexto,
+            g.DrawString(texto, fuenteBanda, pincelTexto,
                 new RectangleF(-longitud / 2f, -AnchoBanda / 2f, longitud, AnchoBanda), formato);
             g.ResetTransform();
+            fuenteBanda.Dispose();
         }
 
-        private static void DibujarEmblema(Graphics g)
+        private void DibujarEmblema(Graphics g)
         {
             const int cx = AnchoBanda / 2;
             const int cy = 92;
@@ -248,8 +282,7 @@ namespace AsistenciaQR.Servicios
             using (var pincelCirculo = new SolidBrush(Color.White))
                 g.FillEllipse(pincelCirculo, cx - radio, cy - radio, radio * 2, radio * 2);
 
-            string rutaEscudo = Path.Combine(AppContext.BaseDirectory, RutaEscudo);
-            if (File.Exists(rutaEscudo))
+            if (_logo is not null)
             {
                 const int margenInterno = 6;
                 using var rutaClip = new GraphicsPath();
@@ -259,7 +292,8 @@ namespace AsistenciaQR.Servicios
                 var clipAnterior = g.Clip;
                 g.SetClip(rutaClip, CombineMode.Intersect);
 
-                using var escudo = Image.FromFile(rutaEscudo);
+                using var flujoLogo = new MemoryStream(_logo);
+                using var escudo = Image.FromStream(flujoLogo);
                 int destino = (radio - margenInterno) * 2;
                 float escala = Math.Max((float)destino / escudo.Width, (float)destino / escudo.Height);
                 int anchoDestino = (int)(escudo.Width * escala);
@@ -278,8 +312,8 @@ namespace AsistenciaQR.Servicios
             g.DrawEllipse(pincelBordeEmblema, cx - radio, cy - radio, radio * 2, radio * 2);
         }
 
-        /// <summary>Se usa solo si no se encuentra el archivo del escudo real.</summary>
-        private static void DibujarEmblemaGenerico(Graphics g, int cx, int cy, int radio)
+        /// <summary>Se usa cuando la institucion no ha subido su logo.</summary>
+        private void DibujarEmblemaGenerico(Graphics g, int cx, int cy, int radio)
         {
             using var rutaEscudo = new GraphicsPath();
             int ax = cx - 19, ay = cy - 20;
@@ -289,7 +323,7 @@ namespace AsistenciaQR.Servicios
             rutaEscudo.AddBezier(ax + 19, ay + 40, ax, ay + 32, ax, ay + 16, ax, ay + 16);
             rutaEscudo.CloseFigure();
 
-            using var pincelEscudo = new SolidBrush(ColorBandaAbajo);
+            using var pincelEscudo = new SolidBrush(_bandaAbajo);
             g.FillPath(pincelEscudo, rutaEscudo);
 
             using var pincelQrMini = new SolidBrush(Color.White);
@@ -309,7 +343,7 @@ namespace AsistenciaQR.Servicios
         }
 
         /// <summary>Foto grande y centrada, como en la referencia. Devuelve el Y donde termino.</summary>
-        private static int DibujarFoto(Graphics g, Estudiante estudiante, int y)
+        private int DibujarFoto(Graphics g, Estudiante estudiante, int y)
         {
             int x = CentroPrincipalX - FotoDiametro / 2;
 
@@ -330,7 +364,7 @@ namespace AsistenciaQR.Servicios
             {
                 using var degradadoFondo = new LinearGradientBrush(
                     new Rectangle(x, y, FotoDiametro, FotoDiametro),
-                    ColorBandaAbajo, ColorFondoArriba, LinearGradientMode.ForwardDiagonal);
+                    _bandaAbajo, ColorFondoArriba, LinearGradientMode.ForwardDiagonal);
                 g.FillEllipse(degradadoFondo, x, y, FotoDiametro, FotoDiametro);
 
                 string iniciales = ObtenerIniciales(estudiante.NombreCompleto);

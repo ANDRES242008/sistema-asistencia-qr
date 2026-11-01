@@ -125,65 +125,66 @@ namespace AsistenciaQR
         private void ConstruirInterfaz()
         {
             Text = "AsistenciaQR - Bitacora de auditoria";
-            Size = new Size(1150, 720);
-            MinimumSize = new Size(900, 520);
+            Size = Escala.Ventana(this, 1150, 720);
+            MinimumSize = Escala.Px(this, 900, 480);
             StartPosition = FormStartPosition.CenterScreen;
             AutoScaleMode = AutoScaleMode.Dpi;
             BackColor = Colores.GrisClaro;
-            Padding = new Padding(24);
+            Padding = new Padding(Escala.Px(this, 24));
 
-            var panelSuperior = new Panel { Dock = DockStyle.Top, Height = 118 };
+            // Titulo y ayuda apilados; debajo, los filtros en una fila que
+            // se acomoda sola (y pasa a una segunda fila si no cabe).
+            var panelSuperior = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false,
+                AutoSize = true
+            };
 
-            var lblTitulo = new Label
+            panelSuperior.Controls.Add(new Label
             {
                 Text = "Bitacora de auditoria",
                 Font = new Font("Segoe UI", 15, FontStyle.Bold),
                 ForeColor = Colores.AzulMarino,
-                AutoSize = true,
-                Location = new Point(0, 0)
-            };
+                AutoSize = true
+            });
 
-            var lblAyuda = new Label
+            panelSuperior.Controls.Add(new Label
             {
                 Text = "Quien hizo cada accion importante y cuando. Los escaneos de QR no aparecen aqui; estan en Reportes.",
                 Font = new Font("Segoe UI", 9),
                 ForeColor = Colores.GrisSecundario,
                 AutoSize = true,
-                Location = new Point(2, 36)
+                Margin = new Padding(3, 0, 3, Escala.Px(this, 10))
+            });
+
+            var filaFiltros = new FlowLayoutPanel
+            {
+                AutoSize = true,
+                WrapContents = true,
+                Margin = new Padding(0, 0, 0, Escala.Px(this, 10)),
+                MaximumSize = new Size(Escala.Px(this, 1100), 0)
             };
 
-            const int yFiltros = 70;
-            _dtpDesde = CrearFecha(DateTime.Today.AddDays(-30), new Point(0, yFiltros + 8));
-            _dtpHasta = CrearFecha(DateTime.Today, new Point(150, yFiltros + 8));
+            _dtpDesde = CrearFecha(DateTime.Today.AddDays(-30));
+            _dtpHasta = CrearFecha(DateTime.Today);
+            _cmbUsuario = CrearCombo(150);
+            _cmbAccion = CrearCombo(210);
 
-            _cmbUsuario = CrearCombo(new Point(300, yFiltros + 8), 150);
-            _cmbAccion = CrearCombo(new Point(462, yFiltros + 8), 210);
-
-            _campoBuscar = new CampoTexto("🔍", "Buscar en el detalle (NIE, nombre...)")
+            _campoBuscar = new CampoTexto("🔍", "Buscar (NIE, nombre...)")
             {
-                Location = new Point(686, yFiltros),
-                Width = 260
+                Width = Escala.Px(this, 240),
+                Margin = new Padding(Escala.Px(this, 4), 0, Escala.Px(this, 10), 0)
             };
             _campoBuscar.TextoCambiado += _ => CargarRegistros();
 
-            var btnExportar = new Button
-            {
-                Text = "📊  Exportar a Excel",
-                FlatStyle = FlatStyle.Flat,
-                BackColor = Colores.BlancoPuro,
-                ForeColor = Colores.GrisOscuro,
-                Font = new Font("Segoe UI Emoji", 9.5f),
-                Size = new Size(170, 38),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right
-            };
-            btnExportar.FlatAppearance.BorderColor = Color.FromArgb(219, 224, 230);
+            var btnExportar = Escala.Boton("📊  Exportar a Excel");
             btnExportar.Click += BtnExportar_Click;
-            panelSuperior.Resize += (_, _) => btnExportar.Location = new Point(panelSuperior.Width - btnExportar.Width, yFiltros + 2);
 
-            panelSuperior.Controls.AddRange(new Control[]
-            {
-                lblTitulo, lblAyuda, _dtpDesde, _dtpHasta, _cmbUsuario, _cmbAccion, _campoBuscar, btnExportar
-            });
+            filaFiltros.Controls.AddRange(new Control[] { _dtpDesde, _dtpHasta, _cmbUsuario, _cmbAccion, _campoBuscar, btnExportar });
+            panelSuperior.Controls.Add(filaFiltros);
+            panelSuperior.Resize += (_, _) => filaFiltros.MaximumSize = new Size(Math.Max(panelSuperior.Width, 200), 0);
 
             _dgvRegistros = new DataGridView
             {
@@ -197,22 +198,28 @@ namespace AsistenciaQR
                 BackgroundColor = Colores.BlancoPuro,
                 BorderStyle = BorderStyle.None,
                 RowHeadersVisible = false,
-                Font = new Font("Segoe UI", 9.5f)
+                Font = new Font("Segoe UI", 9.5f),
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
             };
-            _dgvRegistros.RowTemplate.Height = 28;
-            _dgvRegistros.ColumnHeadersHeight = 32;
+            _dgvRegistros.RowTemplate.Height = Escala.Px(this, 28);
             _dgvRegistros.Columns.Add("Fecha", "Fecha");
             _dgvRegistros.Columns.Add("Usuario", "Usuario");
             _dgvRegistros.Columns.Add("Accion", "Accion");
             _dgvRegistros.Columns.Add("Detalle", "Detalle");
-            _dgvRegistros.Columns["Fecha"]!.FillWeight = 70;
-            _dgvRegistros.Columns["Usuario"]!.FillWeight = 50;
-            _dgvRegistros.Columns["Accion"]!.FillWeight = 70;
-            _dgvRegistros.Columns["Detalle"]!.FillWeight = 260;
+            // Fecha, usuario y accion a la medida de su texto; el detalle ocupa el resto.
+            foreach (var columna in new[] { "Fecha", "Usuario", "Accion" })
+            {
+                _dgvRegistros.Columns[columna]!.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            }
 
-            var panelInferior = new Panel { Dock = DockStyle.Bottom, Height = 56 };
+            var panelInferior = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Bottom,
+                AutoSize = true,
+                Padding = new Padding(0, Escala.Px(this, 12), 0, 0)
+            };
 
-            var btnRegresar = new BotonRegresar { Size = new Size(160, 42), Location = new Point(0, 12) };
+            var btnRegresar = new BotonRegresar { Size = Escala.Px(this, 160, 42) };
             btnRegresar.Click += (_, _) => Close();
 
             _lblTotal = new Label
@@ -220,7 +227,8 @@ namespace AsistenciaQR
                 Font = new Font("Segoe UI", 9.5f),
                 ForeColor = Colores.GrisSecundario,
                 AutoSize = true,
-                Location = new Point(180, 24)
+                Anchor = AnchorStyles.Left,
+                Margin = new Padding(Escala.Px(this, 16), Escala.Px(this, 12), 0, 0)
             };
 
             panelInferior.Controls.AddRange(new Control[] { btnRegresar, _lblTotal });
@@ -230,29 +238,29 @@ namespace AsistenciaQR
             Controls.Add(panelSuperior);
         }
 
-        private DateTimePicker CrearFecha(DateTime valor, Point ubicacion)
+        private DateTimePicker CrearFecha(DateTime valor)
         {
             var selector = new DateTimePicker
             {
                 Format = DateTimePickerFormat.Short,
                 Value = valor,
-                Width = 140,
-                Location = ubicacion,
-                Font = new Font("Segoe UI", 9.5f)
+                Width = Escala.Px(this, 140),
+                Font = new Font("Segoe UI", 9.5f),
+                Margin = new Padding(0, Escala.Px(this, 6), Escala.Px(this, 10), 0)
             };
             selector.ValueChanged += (_, _) => CargarRegistros();
             return selector;
         }
 
-        private ComboBox CrearCombo(Point ubicacion, int ancho)
+        private ComboBox CrearCombo(int anchoDiseno)
         {
             var combo = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 FlatStyle = FlatStyle.Flat,
-                Width = ancho,
-                Location = ubicacion,
-                Font = new Font("Segoe UI", 9.5f)
+                Width = Escala.Px(this, anchoDiseno),
+                Font = new Font("Segoe UI", 9.5f),
+                Margin = new Padding(0, Escala.Px(this, 6), Escala.Px(this, 10), 0)
             };
             combo.SelectedIndexChanged += (_, _) => CargarRegistros();
             return combo;

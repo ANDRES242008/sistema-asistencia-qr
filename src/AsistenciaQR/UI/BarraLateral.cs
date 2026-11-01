@@ -26,6 +26,7 @@ namespace AsistenciaQR.UI
 
         private Panel _panelEncabezado = null!;
         private Label _lblLogo = null!;
+        private Label _lblInstitucion = null!;
 
         private readonly List<(Panel Item, Label Etiqueta, Panel BarraActiva)> _items = new();
 
@@ -71,12 +72,43 @@ namespace AsistenciaQR.UI
                 Text = "🛡️  AsistenciaQR",
                 Font = new Font("Segoe UI Emoji", 12, FontStyle.Bold),
                 ForeColor = Color.White,
-                Location = new Point(20, 28),
+                Location = new Point(20, 18),
                 AutoSize = true
             };
 
+            _lblInstitucion = new Label
+            {
+                Text = new InstitucionService().Obtener().Nombre,
+                Font = new Font("Segoe UI", 8.5f),
+                ForeColor = Color.FromArgb(160, 175, 195),
+                Location = new Point(22, 50),
+                AutoEllipsis = true,
+                Size = new Size(AnchoBase - 30, 18)
+            };
+
             _panelEncabezado.Controls.Add(_lblLogo);
+            _panelEncabezado.Controls.Add(_lblInstitucion);
             Controls.Add(_panelEncabezado);
+            AjustarLogo(12);
+        }
+
+        /// <summary>
+        /// Con la escala de Windows en 125% o mas, "AsistenciaQR" no cabia
+        /// en el ancho del menu: se baja la letra lo necesario.
+        /// </summary>
+        private void AjustarLogo(float tamanoMaximo)
+        {
+            float tamano = tamanoMaximo;
+            var fuente = new Font("Segoe UI Emoji", tamano, FontStyle.Bold);
+            // El emoji del escudo mide mas de lo que reporta MeasureText:
+            // se deja un margen amplio a la derecha.
+            while (tamano > 8 && TextRenderer.MeasureText(_lblLogo.Text, fuente).Width * 1.15f > Width - _lblLogo.Left - 12)
+            {
+                fuente.Dispose();
+                tamano -= 0.5f;
+                fuente = new Font("Segoe UI Emoji", tamano, FontStyle.Bold);
+            }
+            _lblLogo.Font = fuente;
         }
 
         private void AgregarItem(SeccionMenu seccion, string icono, string texto, SeccionMenu seccionActiva, bool soloAdministrador = false)
@@ -178,7 +210,11 @@ namespace AsistenciaQR.UI
         {
             Width = (int)(AnchoBase * escala);
 
-            _lblLogo.Font = new Font("Segoe UI Emoji", 12 * escala, FontStyle.Bold);
+            AjustarLogo(12 * escala);
+            _lblLogo.Location = new Point((int)(20 * escala), (int)(18 * escala));
+            _lblInstitucion.Font = new Font("Segoe UI", 8.5f * escala);
+            _lblInstitucion.Location = new Point((int)(22 * escala), (int)(50 * escala));
+            _lblInstitucion.Size = new Size(Width - (int)(30 * escala), (int)(18 * escala));
             _panelEncabezado.Height = (int)(AlturaEncabezadoBase * escala);
 
             foreach (var (item, etiqueta, barraActiva) in _items)

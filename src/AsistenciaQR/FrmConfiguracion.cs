@@ -60,6 +60,7 @@ namespace AsistenciaQR
         private Label _lblTituloSql = null!;
         private Button _btnProbarSql = null!;
         private Button _btnRespaldos = null!;
+        private Button _btnInstitucion = null!;
         private Panel _pnlResultadoSql = null!;
         private Label _lblResultadoSql = null!;
 
@@ -419,7 +420,14 @@ namespace AsistenciaQR
             _btnGuardar = new BotonPrimario { Text = "💾  Guardar Configuracion" };
             _btnGuardar.Click += BtnGuardar_Click;
 
-            _pnlAccionesFinal.Controls.AddRange(new Control[] { _pnlGuardado, _btnRegresar, _btnGuardar });
+            _btnInstitucion = CrearBotonPildora("🏫  Institucion", Colores.AzulMarino);
+            _btnInstitucion.Click += (_, _) =>
+            {
+                using var institucion = new FrmInstitucion();
+                institucion.ShowDialog(this);
+            };
+
+            _pnlAccionesFinal.Controls.AddRange(new Control[] { _pnlGuardado, _btnInstitucion, _btnRegresar, _btnGuardar });
         }
 
         private static Label CrearEtiqueta(string texto) => new()
@@ -763,12 +771,17 @@ namespace AsistenciaQR
             _btnRegresar.Size = new Size((int)(140 * _escala), altoBoton);
             _btnRegresar.Location = new Point(_btnGuardar.Left - gapBotones - _btnRegresar.Width, centrado);
 
+            _btnInstitucion.Font = new Font("Segoe UI Emoji", 9.5f * _escala, FontStyle.Bold);
+            _btnInstitucion.Size = new Size(Escala.AnchoTexto(_btnInstitucion, (int)(20 * _escala)), altoBoton);
+            _btnInstitucion.Location = new Point(_btnRegresar.Left - gapBotones - _btnInstitucion.Width, centrado);
+            AplicarRegionRedondeada(_btnInstitucion, _btnInstitucion.Height / 2);
+
             int alturaBanner = (int)(38 * _escala);
             int centradoBanner = (alturaFila - alturaBanner) / 2;
             int gapAntesBotones = (int)(16 * _escala);
 
             _lblGuardado.Font = new Font("Segoe UI", 9 * _escala, FontStyle.Bold);
-            _pnlGuardado.Size = new Size(Math.Max(_btnRegresar.Left - margen - gapAntesBotones, 80), alturaBanner);
+            _pnlGuardado.Size = new Size(Math.Max(_btnInstitucion.Left - margen - gapAntesBotones, 80), alturaBanner);
             _pnlGuardado.Location = new Point(margen, centradoBanner);
             AplicarRegionRedondeada(_pnlGuardado, (int)(9 * _escala));
         }

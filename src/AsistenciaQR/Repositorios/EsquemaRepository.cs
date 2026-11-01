@@ -35,7 +35,20 @@ namespace AsistenciaQR.Repositorios
                       constraint pk_Bitacora primary key (BitacoraId)
                   );
                   create index ix_Bitacora_Fecha on Bitacora (Fecha desc);
-              end"
+              end",
+
+            // 008_institucion.sql
+            @"if object_id('ConfiguracionInstitucion', 'U') is null
+                create table ConfiguracionInstitucion (
+                    ConfiguracionInstitucionId int not null
+                        constraint pk_ConfiguracionInstitucion primary key
+                        constraint ck_ConfiguracionInstitucion_UnaFila check (ConfiguracionInstitucionId = 1),
+                    Nombre nvarchar(80) not null,
+                    Logo varbinary(max) null,
+                    ColorPrincipal char(7) null,
+                    FechaActualizacion datetime not null
+                        constraint df_ConfiguracionInstitucion_Fecha default (getdate())
+                );"
         };
 
         public static void AplicarActualizaciones()
