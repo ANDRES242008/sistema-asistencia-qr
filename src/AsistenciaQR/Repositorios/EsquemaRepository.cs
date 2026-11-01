@@ -13,6 +13,64 @@ namespace AsistenciaQR.Repositorios
     {
         private static readonly string[] Actualizaciones =
         {
+            // 001-005: esquema base. Asi una base de datos vacia (la que
+            // crea el asistente de instalacion) queda lista sin scripts.
+            @"if object_id('Estudiantes', 'U') is null
+                create table Estudiantes (
+                    EstudianteId int identity(1,1) not null constraint pk_Estudiantes primary key,
+                    NIE varchar(20) not null constraint uq_Estudiantes_NIE unique,
+                    NombreCompleto varchar(150) not null,
+                    Grado varchar(50) not null,
+                    Seccion varchar(10) not null,
+                    Correo varchar(150) null,
+                    FotoRuta varchar(255) null,
+                    Activo bit not null default 1,
+                    FechaRegistro datetime not null default getdate()
+                );",
+            @"if object_id('QR', 'U') is null
+                create table QR (
+                    QRId int identity(1,1) not null constraint pk_QR primary key,
+                    EstudianteId int not null constraint fk_QR_Estudiantes
+                        references Estudiantes(EstudianteId) on update cascade on delete cascade,
+                    CodigoQR varchar(100) not null constraint uq_QR_CodigoQR unique,
+                    FechaGeneracion datetime not null default getdate(),
+                    Activo bit not null default 1
+                );",
+            @"if object_id('Asistencia', 'U') is null
+                create table Asistencia (
+                    AsistenciaId int identity(1,1) not null constraint pk_Asistencia primary key,
+                    EstudianteId int not null constraint fk_Asistencia_Estudiantes
+                        references Estudiantes(EstudianteId) on update cascade on delete cascade,
+                    Fecha date not null,
+                    Hora time not null,
+                    constraint uq_Asistencia_Estudiante_Fecha unique (EstudianteId, Fecha)
+                );",
+            @"if col_length('QR', 'RutaImagen') is null
+                alter table QR add RutaImagen varchar(255) null;",
+            @"if col_length('Asistencia', 'Observacion') is null
+                alter table Asistencia add Observacion varchar(255) null;",
+            @"if object_id('Usuarios', 'U') is null
+                create table Usuarios (
+                    UsuarioId int identity(1,1) not null constraint pk_Usuarios primary key,
+                    NombreUsuario varchar(50) not null constraint uq_Usuarios_NombreUsuario unique,
+                    NombreCompleto varchar(150) not null,
+                    ContrasenaHash varchar(100) not null,
+                    ContrasenaSal varchar(50) not null,
+                    Rol varchar(30) not null,
+                    Activo bit not null constraint df_Usuarios_Activo default (1),
+                    FechaRegistro datetime not null constraint df_Usuarios_FechaRegistro default (getdate())
+                );",
+            @"if object_id('ConfiguracionHorario', 'U') is null
+                create table ConfiguracionHorario (
+                    ConfiguracionHorarioId int identity(1,1) not null constraint pk_ConfiguracionHorario primary key,
+                    HoraInicio time not null,
+                    MinutosTolerancia int not null,
+                    FechaActualizacion datetime not null
+                        constraint df_ConfiguracionHorario_FechaActualizacion default (getdate())
+                );",
+            @"if col_length('Asistencia', 'EstadoPuntualidad') is null
+                alter table Asistencia add EstadoPuntualidad varchar(20) null;",
+
             // 006_seguridad_usuarios.sql
             @"if col_length('Usuarios', 'IntentosFallidos') is null
                 alter table Usuarios add IntentosFallidos int not null

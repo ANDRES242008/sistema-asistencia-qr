@@ -85,30 +85,29 @@ namespace AsistenciaQR
         }
 
         /// <summary>
-        /// Revisa la base de datos antes del login. Si no hay conexion,
-        /// explica donde se configura. Si no hay ninguna cuenta, abre el
-        /// asistente para crear el primer Administrador. Devuelve false
-        /// si el programa no debe seguir.
+        /// Revisa la base de datos antes del login. Si no se puede usar
+        /// (por ejemplo, recien instalado), abre el asistente que la crea
+        /// y la configura. Si no hay ninguna cuenta, abre el asistente
+        /// para crear el primer Administrador. Devuelve false si el
+        /// programa no debe seguir.
         /// </summary>
         private static bool PrepararPrimerUso()
         {
             bool necesitaPrimerUsuario;
-            try
+            while (true)
             {
-                Repositorios.EsquemaRepository.AplicarActualizaciones();
-                necesitaPrimerUsuario = new Servicios.AuthService().NecesitaPrimerUsuario();
-            }
-            catch (Microsoft.Data.SqlClient.SqlException ex)
-            {
-                RegistrarEnLog(ex);
-                MessageBox.Show(
-                    "No se pudo preparar la base de datos.\n\n" +
-                    "Revisa que SQL Server este encendido y que la cadena de conexion sea correcta en:\n" +
-                    $"{Repositorios.ConexionSQL.RutaArchivo}\n\n" +
-                    $"(o en la variable de entorno {Repositorios.ConexionSQL.VariableEntorno}).\n\n" +
-                    $"Detalle: {ex.Message}",
-                    "AsistenciaQR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                try
+                {
+                    Repositorios.EsquemaRepository.AplicarActualizaciones();
+                    necesitaPrimerUsuario = new Servicios.AuthService().NecesitaPrimerUsuario();
+                    break;
+                }
+                catch (Microsoft.Data.SqlClient.SqlException ex)
+                {
+                    RegistrarEnLog(ex);
+                    using var configurar = new FrmConfigurarBaseDatos(ex.Message);
+                    if (configurar.ShowDialog() != DialogResult.OK) return false;
+                }
             }
 
             if (!necesitaPrimerUsuario) return true;

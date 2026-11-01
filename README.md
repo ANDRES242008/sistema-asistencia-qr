@@ -144,6 +144,31 @@ en [docs/DOCUMENTACION_TABLAS.md](docs/DOCUMENTACION_TABLAS.md).
 
 ## Instalación
 
+### En un colegio (instalador)
+
+**Requisitos:** Windows 10/11 de 64 bits, una cámara web y
+[SQL Server Express](https://www.microsoft.com/es-es/sql-server/sql-server-downloads)
+(gratis). No hace falta instalar .NET.
+
+1. Descarga `AsistenciaQR-Setup-X.Y.Z.exe` de
+   [Releases](https://github.com/ANDRES242008/sistema-asistencia-qr/releases)
+   y ejecútalo. Si la computadora no tiene SQL Server, el instalador lo
+   avisa y ofrece abrir la página de descarga.
+2. Abre AsistenciaQR. La primera vez aparece **Configurar base de
+   datos**: detecta SQL Server, crea la base `AsistenciaQR` con todas sus
+   tablas y guarda la conexión. Puede dar acceso a las demás cuentas de
+   Windows de la computadora (por ejemplo, la del kiosco).
+3. Crea la cuenta de Administrador (ver
+   [Primer uso](#primer-uso-crear-tu-cuenta)).
+4. En **Configuración**, llena **Institución** (nombre, escudo y color)
+   y, si quieres, **Avisos** (correo para los padres).
+
+Al desinstalar no se borran la base de datos, los respaldos ni la
+configuración. El instalador se genera solo en GitHub Actions al crear
+un tag `v*` (script: `installer/AsistenciaQR.iss`, Inno Setup 6).
+
+### Para desarrolladores
+
 **Requisitos:** Windows 10/11, [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0),
 SQL Server (la edición Express sirve), Visual Studio 2022 (17.13 o
 superior, por el formato `.slnx`) y una cámara web.
@@ -155,7 +180,9 @@ superior, por el formato `.slnx`) y una cámara web.
 2. Abre `src/AsistenciaQR/AsistenciaQR.slnx` en Visual Studio. Los
    paquetes NuGet se restauran solos al compilar (la primera vez
    necesita internet).
-3. Crea la base de datos. Con `sqlcmd` instalado, un solo comando
+3. Crea la base de datos. Lo más fácil es presionar **F5** y usar el
+   asistente **Configurar base de datos**, que crea todo solo. Si
+   prefieres los scripts, con `sqlcmd` instalado un solo comando
    ejecuta todos los scripts en orden (cambia la instancia si no es
    `.\SQLEXPRESS`):
    ```bash
@@ -179,13 +206,13 @@ superior, por el formato `.slnx`) y una cámara web.
    Si actualizas desde una versión anterior, no necesitas correr los
    scripts nuevos: la app aplica sola los cambios pendientes al arrancar.
 
-4. Si tu SQL Server no es la instancia local `.\SQLEXPRESS`, cambia la
-   cadena de conexión en `src/AsistenciaQR/appsettings.json`:
+4. La conexión se busca en este orden: la variable de entorno
+   `ASISTENCIAQR_CONEXION`, `C:\ProgramData\AsistenciaQR\appsettings.json`
+   (lo escribe el asistente) y `src/AsistenciaQR/appsettings.json`. Para
+   usar otro servidor sin el asistente, cambia la cadena en este último:
    ```json
    { "ConnectionStrings": { "AsistenciaQR": "Server=TU-SERVIDOR\\SQLEXPRESS;Database=AsistenciaQR;Trusted_Connection=True;TrustServerCertificate=True;" } }
    ```
-   También puedes definir la variable de entorno `ASISTENCIAQR_CONEXION`,
-   que tiene prioridad sobre el archivo. Ya no hace falta tocar el código.
 5. Presiona **F5**.
 
 ## Primer uso: crear tu cuenta
@@ -195,8 +222,8 @@ programa aparece un asistente de **Configuración inicial** que pide
 nombre, usuario y contraseña (mínimo 8 caracteres) para crear la cuenta
 de Administrador. Después se abre el inicio de sesión normal.
 
-Si el programa no logra conectarse a SQL Server, te dice exactamente
-qué archivo revisar en vez de cerrarse.
+Si el programa no logra usar la base de datos, abre el asistente
+**Configurar base de datos** en vez de cerrarse.
 
 ## Roles
 
@@ -340,7 +367,7 @@ manuales de interfaz están en los checklists de la raíz del repositorio.
 - [x] Bitácora de auditoría
 - [x] Personalización por institución (nombre, logo, colores)
 - [x] Avisos a padres de familia por correo (tardanza o ausencia)
-- [ ] Instalador con configuración automática de la base de datos
+- [x] Instalador con configuración automática de la base de datos
 
 ## Autor
 

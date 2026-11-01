@@ -14,3 +14,7 @@ packages/
 
 # Sistema
 Thumbs.db
+
+# Instalador y publicacion
+installer/Output/
+publicar/

@@ -48,10 +48,20 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Publicar ejecutable (no necesita instalar .NET)
-        run: dotnet publish src/AsistenciaQR/AsistenciaQR.csproj -c Release -r win-x64 --self-contained true -o publicar
+      - name: Version desde el tag (v2.0.0 -> 2.0.0)
+        shell: pwsh
+        run: echo "VERSION=$('${{ github.ref_name }}'.TrimStart('v'))" >> $env:GITHUB_ENV
 
-      - name: Empaquetar
+      - name: Publicar ejecutable (no necesita instalar .NET)
+        run: dotnet publish src/AsistenciaQR/AsistenciaQR.csproj -c Release -r win-x64 --self-contained true -p:Version=${{ env.VERSION }} -o publicar
+
+      - name: Compilar instalador (Inno Setup)
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /DVersion=${{ env.VERSION }} /DOrigen=..\publicar installer\AsistenciaQR.iss
+
+      - name: Empaquetar zip portable
         shell: pwsh
         run: |
           Copy-Item database -Destination publicar/database -Recurse
@@ -60,5 +70,7 @@ jobs:
       - name: Crear Release en GitHub
         uses: softprops/action-gh-release@v2
         with:
-          files: AsistenciaQR-${{ github.ref_name }}-win-x64.zip
+          files: |
+            installer/Output/AsistenciaQR-Setup-${{ env.VERSION }}.exe
+            AsistenciaQR-${{ github.ref_name }}-win-x64.zip
           generate_release_notes: true
